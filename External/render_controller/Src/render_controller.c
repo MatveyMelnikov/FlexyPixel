@@ -8,17 +8,15 @@
 
 // Defines -------------------------------------------------------------------
 
-#define IS_COMMAND(buf, cmd) \
+#define CHECK_STR(buf, cmd) \
   memcmp(buf + 9, cmd, 4 * sizeof(char)) == 0
 
 // Static variables ----------------------------------------------------------
 
-static mode_handler current_handlers[MODES_NUM] = { NULL };
+static mode_handler modes[MODES_NUM] = { NULL }; // modes num + handlers_num?
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static uint16_t display_configuration[9];
-// Заменить на модуль типа handler_queue
-//void (*handle_function)(uint8_t *const, led_panels_buffer *const) = NULL;
-
+mode_handler *current_mode = NULL;
 
 // Static functions ----------------------------------------------------------
 
@@ -34,14 +32,14 @@ static void receive_configuration(
   led_panels_buffer *const buffer
 )
 {
-  // 66 symbols
-  // {"sizes": ["256","256","256","256","256","256","256","256","256"]}
+  // 65 symbols
+  // {"sizes":["256","256","256","256","256","256","256","256","256"]}
   UNUSED(buffer);
 
   for (uint16_t i = 0; i < 9; i++)
   {
     display_configuration[i] = string_to_num(
-      (char *)data + 12 + (6 * i)
+      (char *)data + 11 + (6 * i)
     );
   }
 
@@ -49,11 +47,52 @@ static void receive_configuration(
   handler_queue_clear();
 }
 
+static void receive_mode(
+  uint8_t *const data,
+  led_panels_buffer *const buffer
+)
+{
+  // 14 symbols
+  // {"mode":"IMG"} (GIF / RTP)
+
+  UNUSED(buffer);
+
+  // if (CHECK_STR(buffer + 9, "IMG"))
+  //   current_mode = 
+
+  for (uint8_t i = 0; i < MODES_NUM; i++)
+  {
+    if (CHECK_STR(buffer + 9, modes[i]->mode_name))
+      current_mode = modes[i];
+  }
+}
+
 static void set_configuration(void)
 {
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
   handler_queue_add(receive_configuration);
+  hc06_read(io_buffer, 65);
+}
+
+static void set_mode(void)
+{
+  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
+
+  handler_queue_add(receive_mode);
+  hc06_read(io_buffer, 65);
+}
+
+static void set_data_handlers(void)
+{
+  if (current_mode == NULL)
+  {
+    hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
+    return;
+  }
+  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
+
+  mode_handler_set_handlers(current_mode, io_buffer);
 }
 
 static void receive_command(void)
@@ -62,10 +101,14 @@ static void receive_command(void)
   if (!hc06_is_data_received())
     return;
 
-  if (IS_COMMAND(io_buffer, "conf"))
+  if (CHECK_STR(io_buffer, "conf"))
     set_configuration();
+  if (CHECK_STR(io_buffer, "mode"))
+    set_mode();
+  if (CHECK_STR(io_buffer, "data"))
+    set_data_handlers();  
 
-  hc06_read(io_buffer, 66);
+  hc06_read(io_buffer, 15);
 }
 
 // Implemantations -----------------------------------------------------------
@@ -75,7 +118,7 @@ void render_controller_create(
   uint8_t handlers_num
 )
 {
-  memcpy(current_handlers, handlers, handlers_num * sizeof(mode_handler));
+  memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
   hc06_read(io_buffer, 15);
 }
 

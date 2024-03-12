@@ -8,5 +8,6 @@ enum
 };
 
 #define OK_STRING "{\"status\":\"OK\"}"
+#define ERROR_STRING "{\"status\":\"ERROR\"}"
 
 #endif

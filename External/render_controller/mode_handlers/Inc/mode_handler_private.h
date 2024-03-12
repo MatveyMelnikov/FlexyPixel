@@ -15,7 +15,7 @@ typedef struct mode_handler_struct
 
 typedef struct mode_handler_interface_struct
 {
-  void (*set_handlers)(mode_handler);
+  void (*set_handlers)(mode_handler, uint8_t *);
   void (*destroy)(mode_handler);
 } mode_handler_interface_struct;
 

@@ -8,7 +8,8 @@ typedef struct mode_handler_struct * mode_handler;
 
 void mode_handler_destroy(mode_handler self);
 void mode_handler_set_handlers(
-  mode_handler self
+  mode_handler self,
+  uint8_t *buffer
 );
 uint16_t mode_handler_get_render_delay(mode_handler self);
 char *const mode_handler_get_name(mode_handler self);
