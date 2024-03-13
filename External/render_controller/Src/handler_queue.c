@@ -9,7 +9,7 @@ enum {
   QUEUE_SIZE = 5U
 };
 
-static void (*handlers[QUEUE_SIZE])(uint8_t *const, led_panels_buffer *) = {
+static void (*handlers[QUEUE_SIZE])(handler_input *const) = {
   NULL
 };
 static uint8_t top_index = 0;
@@ -18,7 +18,7 @@ static uint8_t current_index = 0;
 // Implementations -----------------------------------------------------------
 
 bool handler_queue_add(
-  void (*handle_function)(uint8_t *const, led_panels_buffer *)
+  void (*handle_function)(handler_input *const input)
 )
 {
   if (top_index >= 5)
@@ -30,13 +30,17 @@ bool handler_queue_add(
   return true;
 }
 
-bool handler_queue_run(uint8_t *const data, led_panels_buffer *buffer)
+bool handler_queue_run(handler_input *const input)
 {
   if (handler_queue_is_empty())
     return false;
 
-  handlers[current_index](data, buffer);
+  handlers[current_index](input);
   current_index++;
+
+  // finish handling
+  if (handler_queue_is_empty())
+    handler_queue_clear();
 
   return true;
 }

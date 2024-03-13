@@ -145,7 +145,7 @@ hc06_status hc06_read(uint8_t *const data, const uint16_t size)
   return status;
 }
 
-hc06_status hc06_receive_complete(void)
+void hc06_receive_complete(void)
 {
   is_data_receiving = false;
 }

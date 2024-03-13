@@ -2,12 +2,12 @@
 #define HANDLER_QUEUE_H
 
 #include <stdint.h>
-#include "led_panels_defs.h"
+#include "handler_input.h"
 
 bool handler_queue_add(
-  void (*handle_function)(uint8_t *const, led_panels_buffer *)
+  void (*handle_function)(handler_input *const)
 );
-bool handler_queue_run(uint8_t *const data, led_panels_buffer *buffer);
+bool handler_queue_run(handler_input *const input);
 bool handler_queue_is_empty(void);
 void handler_queue_clear(void);
 

@@ -30,4 +30,11 @@ led_panels_status led_panels_send(led_panels_buffer *buffer);
 // Called in the end of transfer handler
 void led_panels_send_complete(led_panels_buffer *buffer);
 
+__attribute__((always_inline))
+inline static uint16_t get_side_size(uint16_t size)
+{
+  static const uint8_t sides_sizes[] = { 8U, 16U };
+  return sides_sizes[size >> 8]; // size / 256
+}
+
 #endif

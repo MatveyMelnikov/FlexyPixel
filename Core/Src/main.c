@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "render_controller.h"
-#include "image_mode_handler.h"
+#include "pixel_mode_handler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,7 +110,7 @@ int main(void)
 
   static mode_handler modes[1];
   uint32_t tick = HAL_GetTick();
-  modes[0] = image_mode_handler_create();
+  modes[0] = pixel_mode_handler_create();
 
   render_controller_create(modes, 1);
 

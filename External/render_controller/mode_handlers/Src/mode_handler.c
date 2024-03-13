@@ -10,15 +10,10 @@ void mode_handler_destroy(mode_handler self)
 
 void mode_handler_set_handlers(
   mode_handler self,
-  uint8_t *buffer
+  handler_input *const input
 )
 {
-  self->vtable->set_handlers(self, buffer);
-}
-
-uint16_t mode_handler_get_render_delay(mode_handler self)
-{
-  return self->render_delay;
+  self->vtable->set_handlers(self, input);
 }
 
 char *const mode_handler_get_name(mode_handler self)

@@ -66,7 +66,7 @@ $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_io.c \
 $(RENDER_CONTROLLER)/Src/handler_queue.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \
-$(RENDER_CONTROLLER)/mode_handlers/Src/image_mode_handler.c \
+$(RENDER_CONTROLLER)/mode_handlers/Src/pixel_mode_handler.c \
 $(RENDER_CONTROLLER)/mode_handlers/Src/mode_handler.c
 
 # ASM sources
