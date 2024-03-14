@@ -1,5 +1,6 @@
 #include "render_controller.h"
 #include "render_controller_defs.h"
+#include "render_controller_io.h"
 #include "mode_handler.h"
 #include "hc06_driver.h"
 #include "led_panels_driver.h"
@@ -18,7 +19,7 @@ static mode_handler modes[MODES_NUM] = { NULL }; // modes num + handlers_num?
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static uint16_t display_configuration[9];
 static led_panels_buffer front_buffer;
-static led_panels_buffer end_buffer;
+static led_panels_buffer back_buffer;
 static handler_input handler_args = (handler_input) {
   .buffer = &front_buffer,
   .configurations = display_configuration,
@@ -60,7 +61,7 @@ static void receive_configuration(handler_input *const input)
     display_configuration[i] = display_size;
   }
 
-  //handler_queue_clear();
+  render_controller_io_stop_timeout_timer();
   if (is_ok)
     hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
   else
@@ -82,7 +83,7 @@ static void receive_mode(handler_input *const input)
     }
   }
 
-  //handler_queue_clear();
+  render_controller_io_stop_timeout_timer();
   if (is_ok)
     hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
   else
@@ -95,6 +96,7 @@ static void set_configuration(void)
 
   handler_queue_add(receive_configuration);
   hc06_read(io_buffer, 73);
+  render_controller_io_start_timeout_timer();
 }
 
 static void set_mode(void)
@@ -103,6 +105,7 @@ static void set_mode(void)
 
   handler_queue_add(receive_mode);
   hc06_read(io_buffer, 14);
+  render_controller_io_start_timeout_timer();
 }
 
 static void set_data_handlers(void)
@@ -123,6 +126,9 @@ static void receive_command(void)
   // if (!hc06_is_data_received())
   //   return;
 
+  if (!CHECK_STR(io_buffer + 2, "type", 4))
+    goto error;
+
   if (CHECK_STR(io_buffer + 9, "conf", 4))
   {
     set_configuration();
@@ -139,6 +145,7 @@ static void receive_command(void)
     return;
   }
   
+error:
   hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
   hc06_read(io_buffer, 15);
 }
@@ -152,9 +159,10 @@ void render_controller_create(
 {
   memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
   hc06_read(io_buffer, 15);
+  render_controller_io_create(&front_buffer);
 }
 
-HAL_StatusTypeDef render_controller_process()
+bool render_controller_process()
 {
   if (hc06_is_data_received())
   {
@@ -164,17 +172,14 @@ HAL_StatusTypeDef render_controller_process()
       receive_command();
   }
 
+  if (render_controller_io_is_timeout())
+  {
+    render_controller_io_stop_timeout_timer();
+    hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
+    handler_queue_clear();
+  }
+
   // render
 
-  return HAL_OK;
-}
-
-void render_controller_send_frame_complete()
-{
-  //led_panels_send_complete(buffer);
-}
-
-void render_controller_receive_complete()
-{
-  hc06_receive_complete();
+  return true;
 }

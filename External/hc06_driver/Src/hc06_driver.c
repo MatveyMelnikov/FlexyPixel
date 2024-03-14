@@ -17,7 +17,7 @@ static const uint32_t baudrate_int[] = {
   57600, 115200, 230400, 460800
 };
 static hc06_baudrate current_baudrate;
-static bool is_data_receiving = false;
+static volatile bool is_data_receiving = false;
 
 // Defines -------------------------------------------------------------------
 
