@@ -20,8 +20,8 @@ void render_controller_io_start_timeout_timer()
   is_transmit_timeout = false;
   render_controller_io_stop_timeout_timer();
 
-  __HAL_TIM_CLEAR_FLAG(render_controller_tim, TIM_SR_UIF);
-  HAL_TIM_Base_Start_IT(render_controller_tim);
+  // __HAL_TIM_CLEAR_FLAG(render_controller_tim, TIM_SR_UIF);
+  // HAL_TIM_Base_Start_IT(render_controller_tim);
 }
 
 void render_controller_io_stop_timeout_timer()

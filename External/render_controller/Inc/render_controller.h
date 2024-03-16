@@ -9,6 +9,7 @@ void render_controller_create(
   mode_handler *const handlers,
   uint8_t handlers_num
 );
+void render_controller_destroy(void);
 bool render_controller_process(void);
 
 #endif

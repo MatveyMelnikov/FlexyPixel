@@ -88,7 +88,7 @@ static uint16_t get_pixel_offset(
   );
 
   // Correction for LED tape trajectory - every even line is inverted
-  uint16_t pixel_pos = (y % 2 == 0 ? (7 - x) : x) + y * side_size;
+  uint16_t pixel_pos = (y % 2 == 0 ? (side_size - 1 - x) : x) + y * side_size;
   return pixel_pos * PWM_PIXEL_SIZE;
 }
 
@@ -158,6 +158,8 @@ led_panels_buffer *led_panels_create(
 
 void led_panels_destroy(led_panels_buffer *buffer)
 {
+  if (buffer == NULL)
+    return;
   free(buffer->panels_sizes);
   free(buffer->pwm_data);
   free(buffer);

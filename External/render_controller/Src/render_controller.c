@@ -7,38 +7,23 @@
 #include "handler_queue.h"
 #include "handler_input.h"
 #include <memory.h>
-
-// Defines -------------------------------------------------------------------
-
-#define CHECK_STR(str_a, str_b, size) \
-  memcmp((str_a), (str_b), (size) * sizeof(char)) == 0
+#include <stddef.h>
 
 // Static variables ----------------------------------------------------------
 
 static mode_handler modes[MODES_NUM] = { NULL }; // modes num + handlers_num?
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
-static uint16_t display_configuration[9];
-static led_panels_buffer front_buffer;
-static led_panels_buffer back_buffer;
-static handler_input handler_args = (handler_input) {
-  .buffer = &front_buffer,
-  .configurations = display_configuration,
-  .data = io_buffer
-};
-mode_handler current_mode = NULL;
+static led_panels_size display_configuration[DISPLAY_NUM]; // to led_panels_sizes
+static led_panels_buffer *front_buffer = NULL;
+static led_panels_buffer *back_buffer = NULL;
+static handler_input handler_args = { 0 };
+static mode_handler current_mode = NULL;
 
 // Static functions ----------------------------------------------------------
 
-// static uint16_t string_to_num(char *str)
-// {
-//   return ((uint16_t)(*str) - '0') * 100 + 
-//     ((uint16_t)(*(str + 1)) - '0') * 10 +
-//     ((uint16_t)(*(str + 2)) - '0');
-// }
-
 static bool is_configuration_empty()
 {
-  return display_configuration[0] != 0;
+  return display_configuration[0] == 0;
 }
 
 static void receive_configuration(handler_input *const input)
@@ -46,26 +31,42 @@ static void receive_configuration(handler_input *const input)
   // 73 symbols
   // {"configuration":["256","256","256","256","256","256","256","256","256"]}
 
+  render_controller_io_stop_timeout_timer();
+  if (is_first_field_not_suitable(io_buffer, "configuration"))
+    return;
+
   bool is_ok = true;
-  for (uint16_t i = 0; i < 9; i++)
+  uint16_t new_configuration[DISPLAY_NUM] = { 0 };
+  uint8_t current_displays_num = 0;
+  for (; current_displays_num < DISPLAY_NUM; current_displays_num++)
   {
     uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + 19 + (6 * i)
+      (char *)input->data + CONFIGURATION_OFFSET + (6 * current_displays_num)
     );
-    if (display_size != 64 && display_size != 256)
+    if (display_size == 0)
+      break;
+    if (
+      display_size != LED_PANELS_SIZE_64 && 
+      display_size != LED_PANELS_SIZE_256
+    )
     {
       is_ok = false;
       break;
     }
 
-    display_configuration[i] = display_size;
+    new_configuration[current_displays_num] = display_size;
   }
 
-  render_controller_io_stop_timeout_timer();
   if (is_ok)
-    hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-  else
-    hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
+  {
+    memcpy(
+      display_configuration, new_configuration, sizeof(uint16_t) * DISPLAY_NUM
+    );
+    led_panels_destroy(front_buffer);
+    led_panels_destroy(back_buffer);
+    //led_panels_create(current_displays_num, )
+  }
+  send_status(is_ok);
 }
 
 static void receive_mode(handler_input *const input)
@@ -73,38 +74,33 @@ static void receive_mode(handler_input *const input)
   // 14 symbols
   // {"mode":"SEQ"} (PIX)
 
+  render_controller_io_stop_timeout_timer();
+  if (is_first_field_not_suitable(io_buffer, "mode"))
+    return;
+
   bool is_ok = false;
   for (uint8_t i = 0; i < MODES_NUM; i++)
   {
-    if (CHECK_STR(input->data + 9, modes[i]->mode_name, 3))
+    if (CHECK_STR(input->data + MODE_OFFSET, modes[i]->mode_name, MODE_LEN))
     {
       current_mode = modes[i];
       is_ok = true;
+      break;
     }
   }
 
-  render_controller_io_stop_timeout_timer();
-  if (is_ok)
-    hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-  else
-    hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
+  send_status(is_ok);
 }
 
-static void set_configuration(void)
+static void set_configuration_handlers(
+  void (*handle_function)(handler_input *const),
+  uint16_t number_of_chars_read
+)
 {
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
-  handler_queue_add(receive_configuration);
-  hc06_read(io_buffer, 73);
-  render_controller_io_start_timeout_timer();
-}
-
-static void set_mode(void)
-{
-  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
-  handler_queue_add(receive_mode);
-  hc06_read(io_buffer, 14);
+  handler_queue_add(handle_function);
+  hc06_read(io_buffer, number_of_chars_read);
   render_controller_io_start_timeout_timer();
 }
 
@@ -113,6 +109,7 @@ static void set_data_handlers(void)
   if (current_mode == NULL || is_configuration_empty())
   {
     hc06_write((uint8_t *)UNCONFIGURED_STRING, strlen(UNCONFIGURED_STRING));
+    hc06_read(io_buffer, CMD_LEN);
     return;
   }
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
@@ -123,23 +120,21 @@ static void set_data_handlers(void)
 static void receive_command(void)
 {
   // {"type":"conf"} ("mode"/"data") - 15 symbols
-  // if (!hc06_is_data_received())
-  //   return;
 
-  if (!CHECK_STR(io_buffer + 2, "type", 4))
+  if (!CHECK_STR(io_buffer + FIRST_FIELD_OFFSET, "type", strlen("type")))
     goto error;
 
-  if (CHECK_STR(io_buffer + 9, "conf", 4))
+  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "conf", strlen("conf")))
   {
-    set_configuration();
+    set_configuration_handlers(receive_configuration, 73);
     return;
   }
-  if (CHECK_STR(io_buffer + 9, "mode", 4))
+  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "mode", strlen("mode")))
   {
-    set_mode();
+    set_configuration_handlers(receive_mode, 14);
     return;
   }
-  if (CHECK_STR(io_buffer + 9, "data", 4))
+  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "data", strlen("data")))
   {
     set_data_handlers();
     return;
@@ -147,7 +142,7 @@ static void receive_command(void)
   
 error:
   hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
-  hc06_read(io_buffer, 15);
+  hc06_read(io_buffer, CMD_LEN);
 }
 
 // Implemantations -----------------------------------------------------------
@@ -157,19 +152,44 @@ void render_controller_create(
   uint8_t handlers_num
 )
 {
+  hc06_set_baudrate(HC06_115200);
   memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
-  hc06_read(io_buffer, 15);
-  render_controller_io_create(&front_buffer);
+
+  handler_args.buffer = front_buffer,
+  handler_args.configurations = display_configuration,
+  handler_args.data = io_buffer;
+
+  hc06_read(io_buffer, CMD_LEN);
+  render_controller_io_create(front_buffer);
+}
+
+void render_controller_destroy(void)
+{
+  handler_args.buffer = NULL,
+  handler_args.configurations = NULL,
+  handler_args.data = NULL;
+
+  memset(display_configuration, 0, sizeof(uint16_t) * DISPLAY_NUM);
+
+  led_panels_destroy(front_buffer);
+  led_panels_destroy(back_buffer);
+
+  current_mode = NULL;
+
+  render_controller_io_destroy();
 }
 
 bool render_controller_process()
 {
   if (hc06_is_data_received())
   {
-    if (!handler_queue_is_empty())
+    if (!handler_queue_is_empty()) {
       handler_queue_run(&handler_args);
-    if (handler_queue_is_empty())
+      if (handler_queue_is_empty())
+        hc06_read(io_buffer, CMD_LEN);
+    } else {
       receive_command();
+    }
   }
 
   if (render_controller_io_is_timeout())
