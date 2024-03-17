@@ -7,7 +7,7 @@
 typedef struct
 {
   uint8_t *data;
-  led_panels_buffer *buffer;
+  led_panels_buffer **buffer;
   led_panels_size *configurations;
 } handler_input;
 

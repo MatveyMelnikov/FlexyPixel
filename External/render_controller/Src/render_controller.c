@@ -36,7 +36,7 @@ static void receive_configuration(handler_input *const input)
     return;
 
   bool is_ok = true;
-  uint16_t new_configuration[DISPLAY_NUM] = { 0 };
+  led_panels_size new_configuration[DISPLAY_NUM] = { 0 };
   uint8_t current_displays_num = 0;
   for (; current_displays_num < DISPLAY_NUM; current_displays_num++)
   {
@@ -64,7 +64,15 @@ static void receive_configuration(handler_input *const input)
     );
     led_panels_destroy(front_buffer);
     led_panels_destroy(back_buffer);
-    //led_panels_create(current_displays_num, )
+    
+    front_buffer = led_panels_create(
+      current_displays_num,
+      display_configuration
+    );
+    back_buffer = led_panels_create(
+      current_displays_num,
+      display_configuration
+    );
   }
   send_status(is_ok);
 }
@@ -155,7 +163,7 @@ void render_controller_create(
   hc06_set_baudrate(HC06_115200);
   memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
 
-  handler_args.buffer = front_buffer,
+  handler_args.buffer = &front_buffer,
   handler_args.configurations = display_configuration,
   handler_args.data = io_buffer;
 
@@ -172,7 +180,9 @@ void render_controller_destroy(void)
   memset(display_configuration, 0, sizeof(uint16_t) * DISPLAY_NUM);
 
   led_panels_destroy(front_buffer);
+  front_buffer = NULL;
   led_panels_destroy(back_buffer);
+  back_buffer = NULL;
 
   current_mode = NULL;
 

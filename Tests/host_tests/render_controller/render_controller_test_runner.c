@@ -8,4 +8,5 @@ TEST_GROUP_RUNNER(render_controller)
   RUN_TEST_CASE(render_controller, mode_cmd_and_data_error);
   RUN_TEST_CASE(render_controller, conf_cmd_success);
   RUN_TEST_CASE(render_controller, conf_cmd_and_data_error);
+  RUN_TEST_CASE(render_controller, conf_plus_mode_cmd_and_data_success);
 }

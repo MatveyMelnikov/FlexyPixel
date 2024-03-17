@@ -161,9 +161,10 @@ void led_panels_destroy(led_panels_buffer *buffer)
   if (buffer == NULL)
     return;
   free(buffer->panels_sizes);
+  buffer->panels_sizes = NULL;
   free(buffer->pwm_data);
+  buffer->pwm_data = NULL;
   free(buffer);
-  buffer = NULL;
 }
 
 led_panels_status led_panels_get_pixel(

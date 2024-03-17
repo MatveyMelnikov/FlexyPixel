@@ -3,6 +3,7 @@
 #include "mock_render_controller_io.h"
 #include "mock_hc06_io.h"
 #include "pixel_mode_handler.h"
+#include <string.h>
 
 // Defines -------------------------------------------------------------------
 
@@ -37,52 +38,20 @@ static void start_render_controller(char *next_input)
   render_controller_io_receive_complete();
 }
 
-static void set_mode(char *mode, char *next_input)
+static void send_cmd(char *arg, char *next_input)
 {
-  // set mode handler
+  // set cmd handler
   mock_hc06_io_expect_write(
     (uint8_t*)ok_output,
     strlen(ok_output)
   );
   mock_hc06_io_expect_read_external_then_return(
-    (uint8_t*)mode,
-    strlen(mode)
+    (uint8_t*)arg,
+    strlen(arg)
   );
   mock_render_controller_io_expect_start_timer();
 
-  // mode handler
-  mock_render_controller_io_expect_stop_timer();
-  mock_hc06_io_expect_write(
-    (uint8_t*)ok_output,
-    strlen(ok_output)
-  );
-
-  // getting the next command
-  mock_hc06_io_expect_read_external_then_return(
-    (uint8_t*)next_input,
-    strlen(next_input)
-  );
-
-  render_controller_process();
-
-  render_controller_io_receive_complete();
-  render_controller_process();
-}
-
-static void set_conf(char *conf, char *next_input)
-{
-  // set conf handler
-  mock_hc06_io_expect_write(
-    (uint8_t*)ok_output,
-    strlen(ok_output)
-  );
-  mock_hc06_io_expect_read_external_then_return(
-    (uint8_t*)conf,
-    strlen(conf)
-  );
-  mock_render_controller_io_expect_start_timer();
-
-  // conf handler
+  // cmd handler
   mock_render_controller_io_expect_stop_timer();
   mock_hc06_io_expect_write(
     (uint8_t*)ok_output,
@@ -108,7 +77,7 @@ TEST_GROUP(render_controller);
 TEST_SETUP(render_controller)
 {
   mock_render_controller_io_create(10);
-  mock_hc06_io_create(10);
+  mock_hc06_io_create(20);
 
   modes[0] = pixel_mode_handler_create();
 }
@@ -154,7 +123,7 @@ TEST(render_controller, mode_cmd_success)
   char *mode_input = "{\"mode\":\"PIX\"}";
 
   start_render_controller(cmd_input);
-  set_mode(mode_input, cmd_input);
+  send_cmd(mode_input, cmd_input);
 }
 
 TEST(render_controller, mode_cmd_and_data_error)
@@ -164,7 +133,7 @@ TEST(render_controller, mode_cmd_and_data_error)
   char *data_cmd_input = "{\"type\":\"data\"}";
 
   start_render_controller(mode_cmd_input);
-  set_mode(mode_input, data_cmd_input);
+  send_cmd(mode_input, data_cmd_input);
 
   mock_hc06_io_expect_write(
     (uint8_t*)unconfigured_output,
@@ -188,7 +157,7 @@ TEST(render_controller, conf_cmd_success)
   start_render_controller(cmd_input);
 
   render_controller_io_destroy();
-  set_mode(conf_input, cmd_input);
+  send_cmd(conf_input, cmd_input);
 }
 
 TEST(render_controller, conf_cmd_and_data_error)
@@ -200,7 +169,7 @@ TEST(render_controller, conf_cmd_and_data_error)
   char *data_cmd_input = "{\"type\":\"data\"}";
 
   start_render_controller(conf_cmd_input);
-  set_conf(conf_input, data_cmd_input);
+  send_cmd(conf_input, data_cmd_input);
 
   mock_hc06_io_expect_write(
     (uint8_t*)unconfigured_output,
@@ -213,3 +182,45 @@ TEST(render_controller, conf_cmd_and_data_error)
 
   render_controller_process();
 }
+
+TEST(render_controller, conf_plus_mode_cmd_and_data_success)
+{
+  char *conf_cmd_input = "{\"type\":\"conf\"}";
+  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *mode_input = "{\"mode\":\"PIX\"}";
+  char *conf_input = "{\"configuration\":["
+    "\"256\",\"064\",\"256\",\"064\",\"000\","
+    "\"256\",\"256\",\"256\",\"256\"]}";
+  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_input = "{\"panelPosition\":0,\"pixelPosition\":"
+    "\"000\",\"pixelColor\":\"967\"}";
+
+  start_render_controller(conf_cmd_input);
+  send_cmd(conf_input, mode_cmd_input);
+  send_cmd(mode_input, data_cmd_input);
+
+  mock_hc06_io_expect_write(
+    (uint8_t*)ok_output,
+    strlen(ok_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)data_input,
+    strlen(data_input)
+  );
+  mock_render_controller_io_expect_start_timer();
+
+  mock_render_controller_io_expect_stop_timer();
+  mock_hc06_io_expect_write(
+    (uint8_t*)ok_output,
+    strlen(ok_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)conf_cmd_input,
+    strlen(conf_cmd_input)
+  );
+
+  render_controller_process();
+  render_controller_io_receive_complete();
+  render_controller_process();
+}
+

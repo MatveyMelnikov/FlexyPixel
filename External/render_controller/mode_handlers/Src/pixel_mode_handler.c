@@ -31,7 +31,6 @@ static void handle_pixel_data(handler_input *const input)
   // {"panelPosition":9,"pixelPosition":"000","pixelColor":"967"}
 
   render_controller_io_stop_timeout_timer();
-  // TEST IT
   if (is_transmit_wrong(input))
     END_HANDLE_WITH_ERROR();
 
@@ -43,8 +42,6 @@ static void handle_pixel_data(handler_input *const input)
     .blue = *(input->data + 57) - '0',
   };
 
-  //status |= pixel_position
-
   bool is_panel_not_configured =
     input->configurations[panel_position] == LED_PANELS_UNKNOWN;
   if (is_panel_not_configured)
@@ -54,19 +51,13 @@ static void handle_pixel_data(handler_input *const input)
     input->configurations[panel_position]
   );
   led_panels_status status = led_panels_set_pixel(
-    input->buffer,
+    *input->buffer,
     panel_position,
     pixel_position % panel_size,
     pixel_position / panel_size,
     color
   );
   
-
-  // if (status)
-  //   hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
-  // else
-  //   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
   send_status(status == LED_PANELS_OK);
 }
 
@@ -76,6 +67,7 @@ void set_handlers(mode_handler self, handler_input *const input)
   handler_queue_add(handle_pixel_data);
 
   hc06_read((uint8_t*)input->data, 60);
+  render_controller_io_start_timeout_timer();
 }
 
 void destroy(mode_handler self)
