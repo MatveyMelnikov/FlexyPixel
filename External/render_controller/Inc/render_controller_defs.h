@@ -15,7 +15,8 @@ enum
   MODE_OFFSET = 9U,
   CONFIGURATION_OFFSET = 19U,
   DISPLAY_NUM = 9U,
-  MODE_LEN = 3U
+  MODE_LEN = 3U,
+  RENDER_DELAY = 46U // 21 fps - 1 ms
 };
 
 #define OK_STRING "{\"status\":\"OK\"}"

@@ -12,6 +12,7 @@
 static mode_handler modes[1];
 static char *ok_output = "{\"status\":\"OK\"}";
 static char *unconfigured_output = "{\"status\":\"UNCONFIGURED\"}";
+static char *error_output = "{\"status\":\"ERROR\"}";
 
 // Static functions ----------------------------------------------------------
 
@@ -126,6 +127,16 @@ TEST(render_controller, mode_cmd_success)
   send_cmd(mode_input, cmd_input);
 }
 
+TEST(render_controller, multiple_mode_cmd_success)
+{
+  char *cmd_input = "{\"type\":\"mode\"}";
+  char *mode_input = "{\"mode\":\"PIX\"}";
+
+  start_render_controller(cmd_input);
+  send_cmd(mode_input, cmd_input);
+  send_cmd(mode_input, cmd_input);
+}
+
 TEST(render_controller, mode_cmd_and_data_error)
 {
   char *mode_cmd_input = "{\"type\":\"mode\"}";
@@ -158,6 +169,23 @@ TEST(render_controller, conf_cmd_success)
 
   render_controller_io_destroy();
   send_cmd(conf_input, cmd_input);
+}
+
+TEST(render_controller, multiple_conf_cmd_success)
+{
+  char *cmd_input = "{\"type\":\"conf\"}";
+  char *conf_input_0 = "{\"configuration\":["
+    "\"256\",\"064\",\"256\",\"064\",\"000\","
+    "\"256\",\"256\",\"256\",\"256\"]}";
+  char *conf_input_1 = "{\"configuration\":["
+    "\"064\",\"000\",\"256\",\"064\",\"000\","
+    "\"256\",\"256\",\"256\",\"256\"]}";
+
+  start_render_controller(cmd_input);
+
+  render_controller_io_destroy();
+  send_cmd(conf_input_0, cmd_input);
+  send_cmd(conf_input_1, cmd_input);
 }
 
 TEST(render_controller, conf_cmd_and_data_error)
@@ -213,6 +241,88 @@ TEST(render_controller, conf_plus_mode_cmd_and_data_success)
   mock_hc06_io_expect_write(
     (uint8_t*)ok_output,
     strlen(ok_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)conf_cmd_input,
+    strlen(conf_cmd_input)
+  );
+
+  render_controller_process();
+  render_controller_io_receive_complete();
+  render_controller_process();
+}
+
+TEST(render_controller, conf_plus_mode_cmd_and_data_panel_pos_error)
+{
+  char *conf_cmd_input = "{\"type\":\"conf\"}";
+  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *mode_input = "{\"mode\":\"PIX\"}";
+  char *conf_input = "{\"configuration\":["
+    "\"064\",\"000\",\"256\",\"064\",\"000\","
+    "\"256\",\"256\",\"256\",\"256\"]}";
+  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_input = "{\"panelPosition\":1,\"pixelPosition\":"
+    "\"000\",\"pixelColor\":\"967\"}";
+
+  start_render_controller(conf_cmd_input);
+  send_cmd(conf_input, mode_cmd_input);
+  send_cmd(mode_input, data_cmd_input);
+
+  mock_hc06_io_expect_write(
+    (uint8_t*)ok_output,
+    strlen(ok_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)data_input,
+    strlen(data_input)
+  );
+  mock_render_controller_io_expect_start_timer();
+
+  mock_render_controller_io_expect_stop_timer();
+  mock_hc06_io_expect_write(
+    (uint8_t*)error_output,
+    strlen(error_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)conf_cmd_input,
+    strlen(conf_cmd_input)
+  );
+
+  render_controller_process();
+  render_controller_io_receive_complete();
+  render_controller_process();
+}
+
+TEST(render_controller, conf_plus_mode_cmd_and_data_pixel_pos_error)
+{
+  char *conf_cmd_input = "{\"type\":\"conf\"}";
+  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *mode_input = "{\"mode\":\"PIX\"}";
+  char *conf_input = "{\"configuration\":["
+    "\"064\",\"000\",\"256\",\"064\",\"000\","
+    "\"256\",\"256\",\"256\",\"256\"]}";
+  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_input = "{\"panelPosition\":0,\"pixelPosition\":"
+    "\"125\",\"pixelColor\":\"967\"}";
+
+  start_render_controller(conf_cmd_input);
+  send_cmd(conf_input, mode_cmd_input);
+  send_cmd(mode_input, data_cmd_input);
+
+  mock_hc06_io_expect_write(
+    (uint8_t*)ok_output,
+    strlen(ok_output)
+  );
+  mock_hc06_io_expect_read_external_then_return(
+    (uint8_t*)data_input,
+    strlen(data_input)
+  );
+  mock_render_controller_io_expect_start_timer();
+
+  mock_render_controller_io_expect_stop_timer();
+  mock_hc06_io_expect_write(
+    (uint8_t*)error_output,
+    strlen(error_output)
   );
   mock_hc06_io_expect_read_external_then_return(
     (uint8_t*)conf_cmd_input,

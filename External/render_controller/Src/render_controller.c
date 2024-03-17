@@ -14,10 +14,10 @@
 static mode_handler modes[MODES_NUM] = { NULL }; // modes num + handlers_num?
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static led_panels_size display_configuration[DISPLAY_NUM]; // to led_panels_sizes
-static led_panels_buffer *front_buffer = NULL;
-static led_panels_buffer *back_buffer = NULL;
+static led_panels_buffer *panels_buffer = NULL;
 static handler_input handler_args = { 0 };
 static mode_handler current_mode = NULL;
+static uint32_t captured_ticks = 0U;
 
 // Static functions ----------------------------------------------------------
 
@@ -62,14 +62,9 @@ static void receive_configuration(handler_input *const input)
     memcpy(
       display_configuration, new_configuration, sizeof(uint16_t) * DISPLAY_NUM
     );
-    led_panels_destroy(front_buffer);
-    led_panels_destroy(back_buffer);
+    led_panels_destroy(panels_buffer);
     
-    front_buffer = led_panels_create(
-      current_displays_num,
-      display_configuration
-    );
-    back_buffer = led_panels_create(
+    panels_buffer = led_panels_create(
       current_displays_num,
       display_configuration
     );
@@ -163,12 +158,14 @@ void render_controller_create(
   hc06_set_baudrate(HC06_115200);
   memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
 
-  handler_args.buffer = &front_buffer,
+  handler_args.buffer = &panels_buffer,
   handler_args.configurations = display_configuration,
   handler_args.data = io_buffer;
 
   hc06_read(io_buffer, CMD_LEN);
-  render_controller_io_create(front_buffer);
+  render_controller_io_create(&panels_buffer);
+
+  captured_ticks = render_controller_io_get_ticks();
 }
 
 void render_controller_destroy(void)
@@ -179,18 +176,16 @@ void render_controller_destroy(void)
 
   memset(display_configuration, 0, sizeof(uint16_t) * DISPLAY_NUM);
 
-  led_panels_destroy(front_buffer);
-  front_buffer = NULL;
-  led_panels_destroy(back_buffer);
-  back_buffer = NULL;
+  led_panels_destroy(panels_buffer);
+  panels_buffer = NULL;
 
   current_mode = NULL;
-
   render_controller_io_destroy();
 }
 
 bool render_controller_process()
 {
+  // input
   if (hc06_is_data_received())
   {
     if (!handler_queue_is_empty()) {
@@ -210,6 +205,12 @@ bool render_controller_process()
   }
 
   // render
+  if ((render_controller_io_get_ticks() - captured_ticks) < RENDER_DELAY)
+    return true;
+
+  captured_ticks = render_controller_io_get_ticks();
+  if (panels_buffer != NULL)
+    led_panels_send(panels_buffer);
 
   return true;
 }

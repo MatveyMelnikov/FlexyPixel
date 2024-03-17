@@ -7,6 +7,7 @@ void mock_render_controller_io_create(const uint8_t max_expectations);
 void mock_render_controller_io_destroy(void);
 void mock_render_controller_io_expect_start_timer(void);
 void mock_render_controller_io_expect_stop_timer(void);
+void mock_render_controller_io_set_tick(uint32_t tick);
 void mock_render_controller_io_set_timeout(void);
 void mock_render_controller_io_verify_complete(void);
 

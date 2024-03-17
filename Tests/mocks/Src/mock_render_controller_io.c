@@ -26,11 +26,12 @@ static char *report_kind_error = "Error kind in MockIO."
   " Num of expectation %u ";
 
 static volatile bool is_transmit_timeout = false;
-static led_panels_buffer *front_buffer = NULL;
+static led_panels_buffer **front_buffer = NULL;
 static expectation *expectations = NULL;
 static int set_expectation_count;
 static int get_expectation_count;
 static int max_expectation_count;
+static uint32_t current_tick;
 
 // Static functions ----------------------------------------------------------
 
@@ -121,7 +122,7 @@ void mock_render_controller_io_verify_complete()
 
 // Implementations from render_controller_io ---------------------------------
 
-void render_controller_io_create(led_panels_buffer *buffer)
+void render_controller_io_create(led_panels_buffer **buffer)
 {
   front_buffer = buffer; // ?
 }
@@ -146,6 +147,11 @@ void render_controller_io_stop_timeout_timer()
   get_expectation_count++;
 }
 
+void mock_render_controller_io_set_tick(uint32_t tick)
+{
+  current_tick = tick;
+}
+
 void render_controller_io_timeout_timer_complete()
 {
   is_transmit_timeout = true;
@@ -158,13 +164,18 @@ bool render_controller_io_is_timeout()
 
 void render_controller_io_send_frame_complete()
 {
-  if (front_buffer)
-    led_panels_send_complete(front_buffer);
+  if (*front_buffer)
+    led_panels_send_complete(*front_buffer);
 }
 
 void render_controller_io_receive_complete()
 {
   hc06_receive_complete();
+}
+
+uint32_t render_controller_io_get_ticks()
+{
+  return current_tick;
 }
 
 void render_controller_io_destroy()
