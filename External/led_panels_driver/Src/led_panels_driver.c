@@ -263,3 +263,15 @@ void led_panels_send_complete(led_panels_buffer *buffer)
 {
   buffer->is_locking = false;
 }
+
+void led_panels_copy_pwm_data(
+  led_panels_buffer *target,
+  led_panels_buffer *source
+)
+{
+  memcpy(
+    target->pwm_data,
+    source->pwm_data,
+    get_pwm_data_size(target) - 50
+  );
+}

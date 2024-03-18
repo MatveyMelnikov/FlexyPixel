@@ -6,6 +6,7 @@
 #include "led_panels_driver.h"
 #include "handler_queue.h"
 #include "handler_input.h"
+#include "list_of_changes.h"
 #include <memory.h>
 #include <stddef.h>
 
@@ -14,7 +15,10 @@
 static mode_handler modes[MODES_NUM] = { NULL }; // modes num + handlers_num?
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static led_panels_size display_configuration[DISPLAY_NUM]; // to led_panels_sizes
-static led_panels_buffer *panels_buffer = NULL;
+static uint8_t current_displays_num = 0;
+static bool is_need_to_change_conf = false;
+static led_panels_buffer *front_buffer = NULL;
+static led_panels_buffer *back_buffer = NULL;
 static handler_input handler_args = { 0 };
 static mode_handler current_mode = NULL;
 static uint32_t captured_ticks = 0U;
@@ -24,6 +28,66 @@ static uint32_t captured_ticks = 0U;
 static bool is_configuration_empty()
 {
   return display_configuration[0] == 0;
+}
+
+static void set_configuration()
+{
+  if (!is_need_to_change_conf)
+    return;
+  if (front_buffer != NULL && front_buffer->is_locking)
+    return;
+
+  led_panels_destroy(front_buffer);
+  led_panels_destroy(back_buffer);
+    
+  front_buffer = led_panels_create(
+    current_displays_num,
+    display_configuration
+  );
+  back_buffer = led_panels_create(
+    current_displays_num,
+    display_configuration
+  );
+
+  list_of_changes_destroy();
+  uint16_t pixels_num = 0;
+  for (uint8_t i = 0; i < current_displays_num; i++)
+    pixels_num += display_configuration[i];
+  list_of_changes_create(pixels_num);
+
+  is_need_to_change_conf = false;
+}
+
+static fill_back_buffer()
+{
+  pixel_change change;
+  while (list_of_changes_get(&change))
+  {
+    led_panels_status status = led_panels_set_pixel(
+      back_buffer,
+      change.panel_position,
+      change.x,
+      change.y,
+      change.color
+    );
+  }
+
+  list_of_changes_clear();
+}
+
+static render()
+{
+  if (front_buffer->is_locking)
+    return;
+
+  // swap buffer
+  led_panels_buffer *tmp = front_buffer;
+  front_buffer = back_buffer;
+  back_buffer = front_buffer;
+
+  led_panels_send(front_buffer);
+
+  led_panels_copy_pwm_data(back_buffer, front_buffer);
 }
 
 static void receive_configuration(handler_input *const input)
@@ -37,11 +101,11 @@ static void receive_configuration(handler_input *const input)
 
   bool is_ok = true;
   led_panels_size new_configuration[DISPLAY_NUM] = { 0 };
-  uint8_t current_displays_num = 0;
-  for (; current_displays_num < DISPLAY_NUM; current_displays_num++)
+  uint8_t displays_num = 0;
+  for (; displays_num < DISPLAY_NUM; displays_num++)
   {
     uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + CONFIGURATION_OFFSET + (6 * current_displays_num)
+      (char *)input->data + CONFIGURATION_OFFSET + (6 * displays_num)
     );
     if (display_size == 0)
       break;
@@ -54,20 +118,16 @@ static void receive_configuration(handler_input *const input)
       break;
     }
 
-    new_configuration[current_displays_num] = display_size;
+    new_configuration[displays_num] = display_size;
   }
 
   if (is_ok)
   {
+    current_displays_num = displays_num;
     memcpy(
       display_configuration, new_configuration, sizeof(uint16_t) * DISPLAY_NUM
     );
-    led_panels_destroy(panels_buffer);
-    
-    panels_buffer = led_panels_create(
-      current_displays_num,
-      display_configuration
-    );
+    is_need_to_change_conf = true;
   }
   send_status(is_ok);
 }
@@ -158,12 +218,12 @@ void render_controller_create(
   hc06_set_baudrate(HC06_115200);
   memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
 
-  handler_args.buffer = &panels_buffer,
+  handler_args.buffer = &back_buffer,
   handler_args.configurations = display_configuration,
   handler_args.data = io_buffer;
 
   hc06_read(io_buffer, CMD_LEN);
-  render_controller_io_create(&panels_buffer);
+  render_controller_io_create(&back_buffer);
 
   captured_ticks = render_controller_io_get_ticks();
 }
@@ -176,8 +236,10 @@ void render_controller_destroy(void)
 
   memset(display_configuration, 0, sizeof(uint16_t) * DISPLAY_NUM);
 
-  led_panels_destroy(panels_buffer);
-  panels_buffer = NULL;
+  led_panels_destroy(front_buffer);
+  front_buffer = NULL;
+  led_panels_destroy(back_buffer);
+  back_buffer = NULL;
 
   current_mode = NULL;
   render_controller_io_destroy();
@@ -204,13 +266,19 @@ bool render_controller_process()
     handler_queue_clear();
   }
 
+  set_configuration();
+
   // render
+  if (front_buffer == NULL)
+    return false;
+  fill_back_buffer();
+
   if ((render_controller_io_get_ticks() - captured_ticks) < RENDER_DELAY)
     return true;
 
-  captured_ticks = render_controller_io_get_ticks();
-  if (panels_buffer != NULL)
-    led_panels_send(panels_buffer);
+  // captured_ticks = render_controller_io_get_ticks();
+  // led_panels_send(back_buffer);
+  render();
 
   return true;
 }

@@ -4,6 +4,7 @@
 #include "render_controller_defs.h"
 #include "handler_queue.h"
 #include "led_panels_driver.h"
+#include "list_of_changes.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -50,15 +51,17 @@ static void handle_pixel_data(handler_input *const input)
   uint16_t panel_size = get_side_size(
     input->configurations[panel_position]
   );
-  led_panels_status status = led_panels_set_pixel(
-    *input->buffer,
-    panel_position,
-    pixel_position % panel_size,
-    pixel_position / panel_size,
-    color
+
+  bool is_ok = list_of_changes_add(
+    (pixel_change){
+      .color = color,
+      .panel_position = panel_position,
+      .x = pixel_position % panel_size,
+      .y = pixel_position / panel_size
+    }
   );
   
-  send_status(status == LED_PANELS_OK);
+  send_status(is_ok);
 }
 
 void set_handlers(mode_handler self, handler_input *const input)

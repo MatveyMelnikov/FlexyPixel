@@ -29,6 +29,10 @@ led_panels_status led_panels_flush(
 led_panels_status led_panels_send(led_panels_buffer *buffer);
 // Called in the end of transfer handler
 void led_panels_send_complete(led_panels_buffer *buffer);
+void led_panels_copy_pwm_data(
+  led_panels_buffer *target,
+  led_panels_buffer *source
+);
 
 __attribute__((always_inline))
 inline static uint16_t get_side_size(uint16_t size)
