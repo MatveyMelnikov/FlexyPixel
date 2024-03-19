@@ -2,6 +2,7 @@
 #include "render_controller_defs.h"
 #include "render_controller_io.h"
 #include "displays_conf.h"
+#include "operation_mode.h"
 #include "mode_handler.h"
 #include "hc06_driver.h"
 #include "led_panels_driver.h"
@@ -19,7 +20,6 @@ static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
 static led_panels_buffer *back_buffer = NULL;
 static handler_input handler_args = { 0 };
-static mode_handler current_mode = NULL;
 static uint32_t captured_ticks = 0U;
 
 // Static functions ----------------------------------------------------------
@@ -135,7 +135,8 @@ static void receive_mode(handler_input *const input)
   {
     if (CHECK_STR(input->data + MODE_OFFSET, modes[i]->mode_name, MODE_LEN))
     {
-      current_mode = modes[i];
+      operation_mode_set(modes[i]);
+      
       is_ok = true;
       break;
     }
@@ -158,7 +159,7 @@ static void set_configuration_handlers(
 
 static void set_data_handlers(void)
 {
-  if (current_mode == NULL || displays_conf_is_empty())
+  if (!operation_mode_is_set() || displays_conf_is_empty())
   {
     hc06_write((uint8_t *)UNCONFIGURED_STRING, strlen(UNCONFIGURED_STRING));
     hc06_read(io_buffer, CMD_LEN);
@@ -166,7 +167,7 @@ static void set_data_handlers(void)
   }
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
-  mode_handler_set_handlers(current_mode, &handler_args);
+  mode_handler_set_handlers(operation_mode_get(), &handler_args);
 }
 
 static void receive_command(void)
@@ -229,7 +230,7 @@ void render_controller_destroy(void)
   led_panels_destroy(back_buffer);
   back_buffer = NULL;
 
-  current_mode = NULL;
+  operation_mode_clear();
   render_controller_io_destroy();
 }
 

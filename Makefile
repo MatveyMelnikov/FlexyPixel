@@ -70,7 +70,8 @@ $(RENDER_CONTROLLER)/Src/render_controller_io.c \
 $(RENDER_CONTROLLER)/mode_handlers/Src/pixel_mode_handler.c \
 $(RENDER_CONTROLLER)/mode_handlers/Src/mode_handler.c \
 $(RENDER_CONTROLLER)/Src/list_of_changes.c \
-$(RENDER_CONTROLLER)/Src/displays_conf.c
+$(RENDER_CONTROLLER)/Src/displays_conf.c \
+$(RENDER_CONTROLLER)/Src/operation_mode.c
 
 # ASM sources
 ASM_SOURCES =  \
