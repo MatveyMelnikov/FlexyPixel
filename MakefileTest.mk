@@ -28,7 +28,8 @@ $(RENDER_CONTROLLER)/Src/handler_queue.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \
 $(RENDER_CONTROLLER)/mode_handlers/Src/pixel_mode_handler.c \
 $(RENDER_CONTROLLER)/mode_handlers/Src/mode_handler.c \
-$(RENDER_CONTROLLER)/Src/list_of_changes.c
+$(RENDER_CONTROLLER)/Src/list_of_changes.c \
+$(RENDER_CONTROLLER)/Src/displays_conf.c
 
 C_INCLUDES += \
 -I$(TESTS_DIR)/mocks/Inc \

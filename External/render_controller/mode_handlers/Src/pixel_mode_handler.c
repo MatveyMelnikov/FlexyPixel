@@ -5,6 +5,7 @@
 #include "handler_queue.h"
 #include "led_panels_driver.h"
 #include "list_of_changes.h"
+#include "displays_conf.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -23,7 +24,7 @@ static bool is_transmit_wrong(handler_input *const input)
 {
   bool is_first_field = !CHECK_STR(input->data + 2, "panelPosition", 13);
   bool is_last_field = !CHECK_STR(input->data + 42, "pixelColor", 10);
-  return (input->configurations[0] == 0) || is_first_field || is_last_field;
+  return (displays_conf_is_empty() || is_first_field || is_last_field);
 }
 
 static void handle_pixel_data(handler_input *const input)
@@ -43,14 +44,10 @@ static void handle_pixel_data(handler_input *const input)
     .blue = *(input->data + 57) - '0',
   };
 
-  bool is_panel_not_configured =
-    input->configurations[panel_position] == LED_PANELS_UNKNOWN;
-  if (is_panel_not_configured)
+  if (!displays_conf_is_panel_configured(panel_position))
     END_HANDLE_WITH_ERROR();
 
-  uint16_t panel_size = get_side_size(
-    input->configurations[panel_position]
-  );
+  uint16_t panel_size = get_side_size(displays_conf_get()[panel_position]);
 
   bool is_ok = list_of_changes_add(
     (pixel_change){

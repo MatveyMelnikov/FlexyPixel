@@ -2,6 +2,7 @@
 #define LED_PANELS_DEFS_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 enum
 {

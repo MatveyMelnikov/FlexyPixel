@@ -45,6 +45,7 @@ void list_of_changes_destroy()
 {
   if (list)
     free(list);
+  list = NULL;
   list_of_changes_clear();
   current_size = 0;
 }
