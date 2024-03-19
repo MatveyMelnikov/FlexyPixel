@@ -265,7 +265,6 @@ bool render_controller_process()
     return true;
 
   captured_ticks = render_controller_io_get_ticks();
-  // led_panels_send(back_buffer);
   render();
 
   return true;

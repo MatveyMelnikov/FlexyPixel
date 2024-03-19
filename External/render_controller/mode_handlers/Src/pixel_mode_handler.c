@@ -36,12 +36,12 @@ static void handle_pixel_data(handler_input *const input)
   if (is_transmit_wrong(input))
     END_HANDLE_WITH_ERROR();
 
-  uint8_t panel_position = *(input->data + 17) - '0';
+  uint8_t panel_position = CHAR_TO_NUM(input->data + 17);
   uint8_t pixel_position = STR_TO_NUM(input->data + 36);
   led_panels_color color = (led_panels_color) {
-    .red = *(input->data + 55) - '0',
-    .green = *(input->data + 56) - '0',
-    .blue = *(input->data + 57) - '0',
+    .red = CHAR_TO_NUM(input->data + 55),
+    .green = CHAR_TO_NUM(input->data + 56),
+    .blue = CHAR_TO_NUM(input->data + 57)
   };
 
   if (!displays_conf_is_panel_configured(panel_position))

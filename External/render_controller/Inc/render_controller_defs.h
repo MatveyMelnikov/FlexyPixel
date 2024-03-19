@@ -22,10 +22,13 @@ enum
 #define ERROR_STRING "{\"status\":\"ERROR\"}"
 #define UNCONFIGURED_STRING "{\"status\":\"UNCONFIGURED\"}"
 
+#define CHAR_TO_NUM(ch) \
+  (*(ch) - '0')
+
 #define STR_TO_NUM(str) \
-  ((uint16_t)(*(str)) - '0') * 100 + \
-  ((uint16_t)(*((str) + 1)) - '0') * 10 + \
-  ((uint16_t)(*((str) + 2)) - '0')
+  (uint16_t)CHAR_TO_NUM(str) * 100 + \
+  (uint16_t)CHAR_TO_NUM(str + 1) * 10 + \
+  (uint16_t)CHAR_TO_NUM(str + 2)
 
 #define CHECK_STR(str_a, str_b, size) \
   (memcmp((str_a), (str_b), (size) * sizeof(char)) == 0)
