@@ -3,7 +3,7 @@
 #include "render_controller_io.h"
 #include "displays_conf.h"
 #include "operation_mode.h"
-#include "mode_handler.h"
+#include "handler.h"
 #include "hc06_driver.h"
 #include "led_panels_driver.h"
 #include "handler_queue.h"
@@ -14,7 +14,7 @@
 
 // Static variables ----------------------------------------------------------
 
-static mode_handler modes[MODES_NUM] = { NULL };
+static handler modes[MODES_NUM] = { NULL };
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
@@ -167,7 +167,7 @@ static void set_data_handlers(void)
   }
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
-  mode_handler_set_handlers(operation_mode_get(), &handler_args);
+  handler_set(operation_mode_get(), &handler_args);
 }
 
 static void receive_command(void)
@@ -201,14 +201,13 @@ error:
 // Implemantations -----------------------------------------------------------
 
 void render_controller_create(
-  mode_handler *const handlers,
+  handler *const handlers,
   uint8_t handlers_num
 )
 {
   hc06_set_baudrate(HC06_115200);
-  memcpy(modes, handlers, handlers_num * sizeof(mode_handler));
+  memcpy(modes, handlers, handlers_num * sizeof(handler));
 
-  handler_args.buffer = &back_buffer,
   handler_args.data = io_buffer;
 
   hc06_read(io_buffer, CMD_LEN);
@@ -219,8 +218,6 @@ void render_controller_create(
 
 void render_controller_destroy(void)
 {
-  handler_args.buffer = NULL,
-  handler_args.configurations = NULL,
   handler_args.data = NULL;
 
   displays_conf_clear();

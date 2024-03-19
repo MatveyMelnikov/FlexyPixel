@@ -38,6 +38,8 @@ BUILD_DIR = build
 HC06_DRIVER = External/hc06_driver
 LED_PANELS_DRIVER = External/led_panels_driver
 RENDER_CONTROLLER = External/render_controller
+AUXILIARY_MODULES = External/auxiliary_modules
+HANDLER = External/handler
 
 # C sources
 C_SOURCES =  \
@@ -64,14 +66,14 @@ $(HC06_DRIVER)/Src/hc06_io.c \
 $(HC06_DRIVER)/Src/hc06_time.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_io.c \
-$(RENDER_CONTROLLER)/Src/handler_queue.c \
+$(AUXILIARY_MODULES)/Src/list_of_changes.c \
+$(AUXILIARY_MODULES)/Src/displays_conf.c \
+$(AUXILIARY_MODULES)/Src/operation_mode.c \
+$(HANDLER)/Src/pixel_mode_handler.c \
+$(HANDLER)/Src/handler.c \
+$(HANDLER)/Src/handler_queue.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \
-$(RENDER_CONTROLLER)/Src/render_controller_io.c \
-$(RENDER_CONTROLLER)/mode_handlers/Src/pixel_mode_handler.c \
-$(RENDER_CONTROLLER)/mode_handlers/Src/mode_handler.c \
-$(RENDER_CONTROLLER)/Src/list_of_changes.c \
-$(RENDER_CONTROLLER)/Src/displays_conf.c \
-$(RENDER_CONTROLLER)/Src/operation_mode.c
+$(RENDER_CONTROLLER)/Src/render_controller_io.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -139,8 +141,9 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -I$(HC06_DRIVER)/Inc \
 -I$(LED_PANELS_DRIVER)/Inc \
--I$(RENDER_CONTROLLER)/Inc \
--I$(RENDER_CONTROLLER)/mode_handlers/Inc
+-I$(AUXILIARY_MODULES)/Inc \
+-I$(HANDLER)/Inc \
+-I$(RENDER_CONTROLLER)/Inc
 
 
 # compile gcc flags

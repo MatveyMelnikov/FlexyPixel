@@ -9,7 +9,7 @@
 
 // Static variables ----------------------------------------------------------
 
-static mode_handler modes[1];
+static handler modes[1];
 static char *ok_output = "{\"status\":\"OK\"}";
 static char *unconfigured_output = "{\"status\":\"UNCONFIGURED\"}";
 static char *error_output = "{\"status\":\"ERROR\"}";
@@ -85,7 +85,7 @@ TEST_SETUP(render_controller)
 
 TEST_TEAR_DOWN(render_controller)
 {
-  mode_handler_destroy(modes[0]);
+  handler_destroy(modes[0]);
 
   mock_render_controller_io_verify_complete();
   mock_render_controller_io_destroy();

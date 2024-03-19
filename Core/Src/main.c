@@ -112,7 +112,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  static mode_handler modes[1];
+  static handler modes[1];
   uint32_t tick = HAL_GetTick();
   modes[0] = pixel_mode_handler_create();
 

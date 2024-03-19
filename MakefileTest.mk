@@ -7,6 +7,8 @@ UNITY_DIR = External/Unity-2.5.2
 HC06_DRIVER = External/hc06_driver
 LED_PANELS_DRIVER = External/led_panels_driver
 RENDER_CONTROLLER = External/render_controller
+AUXILIARY_MODULES = External/auxiliary_modules
+HANDLER = External/handler
 
 C_INCLUDES += \
 -I$(HC06_DRIVER)/Inc \
@@ -15,7 +17,9 @@ C_INCLUDES += \
 -I$(UNITY_DIR)/extras/fixture/src \
 -I$(UNITY_DIR)/extras/memory/src \
 -I$(RENDER_CONTROLLER)/Inc \
--I$(RENDER_CONTROLLER)/mode_handlers/Inc \
+-I$(AUXILIARY_MODULES)/Inc \
+-I$(HANDLER)/Inc \
+-I$(RENDER_CONTROLLER)/Inc \
 -I$(TESTS_DIR)
 
 C_SOURCES += \
@@ -24,13 +28,14 @@ $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
 $(UNITY_DIR)/src/unity.c \
 $(UNITY_DIR)/extras/fixture/src/unity_fixture.c \
 $(UNITY_DIR)/extras/memory/src/unity_memory.c \
-$(RENDER_CONTROLLER)/Src/handler_queue.c \
-$(RENDER_CONTROLLER)/Src/render_controller.c \
-$(RENDER_CONTROLLER)/mode_handlers/Src/pixel_mode_handler.c \
-$(RENDER_CONTROLLER)/mode_handlers/Src/mode_handler.c \
-$(RENDER_CONTROLLER)/Src/list_of_changes.c \
-$(RENDER_CONTROLLER)/Src/displays_conf.c \
-$(RENDER_CONTROLLER)/Src/operation_mode.c
+$(AUXILIARY_MODULES)/Src/list_of_changes.c \
+$(AUXILIARY_MODULES)/Src/displays_conf.c \
+$(AUXILIARY_MODULES)/Src/operation_mode.c \
+$(HANDLER)/Src/pixel_mode_handler.c \
+$(HANDLER)/Src/handler.c \
+$(HANDLER)/Src/handler_queue.c \
+$(RENDER_CONTROLLER)/Src/render_controller.c
+
 
 C_INCLUDES += \
 -I$(TESTS_DIR)/mocks/Inc \

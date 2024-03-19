@@ -1,4 +1,6 @@
 #include "displays_conf.h"
+#include <string.h>
+#include <memory.h>
 
 // Static variables ----------------------------------------------------------
 

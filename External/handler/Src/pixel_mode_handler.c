@@ -1,6 +1,6 @@
 #include "pixel_mode_handler.h"
 #include "hc06_driver.h"
-#include "render_controller.h"
+#include "render_controller_io.h"
 #include "render_controller_defs.h"
 #include "handler_queue.h"
 #include "led_panels_driver.h"
@@ -61,7 +61,7 @@ static void handle_pixel_data(handler_input *const input)
   send_status(is_ok);
 }
 
-void set_handlers(mode_handler self, handler_input *const input)
+void set_handlers(handler self, handler_input *const input)
 {
   handler_queue_clear();
   handler_queue_add(handle_pixel_data);
@@ -70,14 +70,14 @@ void set_handlers(mode_handler self, handler_input *const input)
   render_controller_io_start_timeout_timer();
 }
 
-void destroy(mode_handler self)
+void destroy(handler self)
 {
   free(self);
 }
 
 // Static variables ----------------------------------------------------------
 
-static mode_handler_interface_struct interface =
+static handler_interface_struct interface =
 {
   set_handlers,
   destroy
@@ -85,9 +85,9 @@ static mode_handler_interface_struct interface =
 
 // Implementations -----------------------------------------------------------
 
-mode_handler pixel_mode_handler_create()
+handler pixel_mode_handler_create()
 {
-  mode_handler handler = malloc(sizeof(mode_handler_struct));
+  handler handler = malloc(sizeof(handler_struct));
   handler->mode_name = "PIX";
   handler->vtable = &interface;
 
