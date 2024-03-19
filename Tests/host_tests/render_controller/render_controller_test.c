@@ -103,12 +103,12 @@ TEST_TEAR_DOWN(render_controller)
 
 TEST(render_controller, render_controller_start)
 {
-  start_render_controller("{\"type\":\"data\"}");
+  start_render_controller("{\"type\":\"DATA\"}");
 }
 
 TEST(render_controller, data_cmd_unconfigured)
 {
-  char *input_data = "{\"type\":\"data\"}";
+  char *input_data = "{\"type\":\"DATA\"}";
 
   start_render_controller(input_data);
 
@@ -126,7 +126,7 @@ TEST(render_controller, data_cmd_unconfigured)
 
 TEST(render_controller, mode_cmd_success)
 {
-  char *cmd_input = "{\"type\":\"mode\"}";
+  char *cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
 
   start_render_controller(cmd_input);
@@ -135,7 +135,7 @@ TEST(render_controller, mode_cmd_success)
 
 TEST(render_controller, multiple_mode_cmd_success)
 {
-  char *cmd_input = "{\"type\":\"mode\"}";
+  char *cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
 
   start_render_controller(cmd_input);
@@ -145,9 +145,9 @@ TEST(render_controller, multiple_mode_cmd_success)
 
 TEST(render_controller, mode_cmd_and_data_error)
 {
-  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *mode_cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
-  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_cmd_input = "{\"type\":\"DATA\"}";
 
   start_render_controller(mode_cmd_input);
   send_cmd(mode_input, data_cmd_input);
@@ -166,7 +166,7 @@ TEST(render_controller, mode_cmd_and_data_error)
 
 TEST(render_controller, conf_cmd_success)
 {
-  char *cmd_input = "{\"type\":\"conf\"}";
+  char *cmd_input = "{\"type\":\"CONF\"}";
   char *conf_input = "{\"configuration\":["
     "\"256\",\"064\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
@@ -179,7 +179,7 @@ TEST(render_controller, conf_cmd_success)
 
 TEST(render_controller, multiple_conf_cmd_success)
 {
-  char *cmd_input = "{\"type\":\"conf\"}";
+  char *cmd_input = "{\"type\":\"CONF\"}";
   char *conf_input_0 = "{\"configuration\":["
     "\"256\",\"064\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
@@ -196,11 +196,11 @@ TEST(render_controller, multiple_conf_cmd_success)
 
 TEST(render_controller, conf_cmd_and_data_error)
 {
-  char *conf_cmd_input = "{\"type\":\"conf\"}";
+  char *conf_cmd_input = "{\"type\":\"CONF\"}";
   char *conf_input = "{\"configuration\":["
     "\"256\",\"064\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
-  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_cmd_input = "{\"type\":\"DATA\"}";
 
   start_render_controller(conf_cmd_input);
   send_cmd(conf_input, data_cmd_input);
@@ -219,13 +219,13 @@ TEST(render_controller, conf_cmd_and_data_error)
 
 TEST(render_controller, conf_plus_mode_cmd_and_data_success)
 {
-  char *conf_cmd_input = "{\"type\":\"conf\"}";
-  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *conf_cmd_input = "{\"type\":\"CONF\"}";
+  char *mode_cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
   char *conf_input = "{\"configuration\":["
     "\"256\",\"064\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
-  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_cmd_input = "{\"type\":\"DATA\"}";
   char *data_input = "{\"panelPosition\":0,\"pixelPosition\":"
     "\"000\",\"pixelColor\":\"967\"}";
 
@@ -260,13 +260,13 @@ TEST(render_controller, conf_plus_mode_cmd_and_data_success)
 
 TEST(render_controller, conf_plus_mode_cmd_and_data_panel_pos_error)
 {
-  char *conf_cmd_input = "{\"type\":\"conf\"}";
-  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *conf_cmd_input = "{\"type\":\"CONF\"}";
+  char *mode_cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
   char *conf_input = "{\"configuration\":["
     "\"064\",\"000\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
-  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_cmd_input = "{\"type\":\"DATA\"}";
   char *data_input = "{\"panelPosition\":1,\"pixelPosition\":"
     "\"000\",\"pixelColor\":\"967\"}";
 
@@ -301,13 +301,13 @@ TEST(render_controller, conf_plus_mode_cmd_and_data_panel_pos_error)
 
 TEST(render_controller, conf_plus_mode_cmd_and_data_pixel_pos_error)
 {
-  char *conf_cmd_input = "{\"type\":\"conf\"}";
-  char *mode_cmd_input = "{\"type\":\"mode\"}";
+  char *conf_cmd_input = "{\"type\":\"CONF\"}";
+  char *mode_cmd_input = "{\"type\":\"MODE\"}";
   char *mode_input = "{\"mode\":\"PIX\"}";
   char *conf_input = "{\"configuration\":["
     "\"064\",\"000\",\"256\",\"064\",\"000\","
     "\"256\",\"256\",\"256\",\"256\"]}";
-  char *data_cmd_input = "{\"type\":\"data\"}";
+  char *data_cmd_input = "{\"type\":\"DATA\"}";
   char *data_input = "{\"panelPosition\":0,\"pixelPosition\":"
     "\"125\",\"pixelColor\":\"967\"}";
 

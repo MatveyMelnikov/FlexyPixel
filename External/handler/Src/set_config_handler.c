@@ -70,7 +70,7 @@ static handler_interface_struct interface =
 handler set_config_handler_create()
 {
   handler handler = malloc(sizeof(handler_struct));
-  handler->name = "conf";
+  handler->name = "CONF";
   handler->vtable = &interface;
 
   return handler;

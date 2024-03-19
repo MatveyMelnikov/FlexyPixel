@@ -87,7 +87,7 @@ static void render()
 
 static void receive_command(void)
 {
-  // {"type":"conf"} ("mode"/"data") - 15 symbols
+  // {"type":"CONF"} ("MODE"/"DATA") - 15 symbols
 
   if (!CHECK_STR(io_buffer + FIRST_FIELD_OFFSET, "type", strlen("type")))
     goto error;

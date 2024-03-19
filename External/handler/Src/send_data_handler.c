@@ -39,7 +39,7 @@ static handler_interface_struct interface =
 handler send_data_handler_create()
 {
   handler handler = malloc(sizeof(handler_struct));
-  handler->name = "data";
+  handler->name = "DATA";
   handler->vtable = &interface;
 
   return handler;
