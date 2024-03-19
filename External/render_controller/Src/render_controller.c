@@ -17,6 +17,7 @@ static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static led_panels_size display_configuration[DISPLAY_NUM]; // to led_panels_sizes
 static uint8_t current_displays_num = 0;
 static bool is_need_to_change_conf = false;
+static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
 static led_panels_buffer *back_buffer = NULL;
 static handler_input handler_args = { 0 };
@@ -70,6 +71,8 @@ static fill_back_buffer()
       change.y,
       change.color
     );
+
+    pixels_have_changed = true;
   }
 
   list_of_changes_clear();
@@ -77,7 +80,7 @@ static fill_back_buffer()
 
 static render()
 {
-  if (front_buffer->is_locking)
+  if (front_buffer->is_locking || !pixels_have_changed)
     return;
 
   // swap buffer
@@ -88,6 +91,8 @@ static render()
   led_panels_send(front_buffer);
 
   led_panels_copy_pwm_data(back_buffer, front_buffer);
+  
+  pixels_have_changed = false;
 }
 
 static void receive_configuration(handler_input *const input)
