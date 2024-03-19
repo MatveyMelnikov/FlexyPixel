@@ -2,7 +2,7 @@
 #include "render_controller_defs.h"
 #include "render_controller_io.h"
 #include "displays_conf.h"
-#include "operation_mode.h"
+#include "handler_list.h"
 #include "handler.h"
 #include "hc06_driver.h"
 #include "led_panels_driver.h"
@@ -14,7 +14,7 @@
 
 // Static variables ----------------------------------------------------------
 
-static handler modes[MODES_NUM] = { NULL };
+//static handler modes[MODES_NUM] = { NULL };
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
@@ -85,112 +85,27 @@ static void render()
   pixels_have_changed = false;
 }
 
-static void receive_configuration(handler_input *const input)
-{
-  // 73 symbols
-  // {"configuration":["256","256","256","256","256","256","256","256","256"]}
-
-  render_controller_io_stop_timeout_timer();
-  if (is_first_field_not_suitable(io_buffer, "configuration"))
-    return;
-
-  bool is_ok = true;
-  led_panels_size new_configuration[CONFIGURATION_SIZE] = { 0 };
-  uint8_t displays_num = 0;
-  for (; displays_num < CONFIGURATION_SIZE; displays_num++)
-  {
-    uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + CONFIGURATION_OFFSET + (6 * displays_num)
-    );
-    if (display_size == 0)
-      break;
-    if (display_size != LED_PANELS_SIZE_64 && 
-      display_size != LED_PANELS_SIZE_256)
-    {
-      is_ok = false;
-      break;
-    }
-
-    new_configuration[displays_num] = display_size;
-  }
-
-  if (is_ok)
-  {
-    displays_conf_update(new_configuration, displays_num);
-  }
-  send_status(is_ok);
-}
-
-static void receive_mode(handler_input *const input)
-{
-  // 14 symbols
-  // {"mode":"SEQ"} (PIX)
-
-  render_controller_io_stop_timeout_timer();
-  if (is_first_field_not_suitable(io_buffer, "mode"))
-    return;
-
-  bool is_ok = false;
-  for (uint8_t i = 0; i < MODES_NUM; i++)
-  {
-    if (CHECK_STR(input->data + MODE_OFFSET, modes[i]->mode_name, MODE_LEN))
-    {
-      operation_mode_set(modes[i]);
-      
-      is_ok = true;
-      break;
-    }
-  }
-
-  send_status(is_ok);
-}
-
-static void set_configuration_handlers(
-  void (*handle_function)(handler_input *const),
-  uint16_t number_of_chars_read
-)
-{
-  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
-  handler_queue_add(handle_function);
-  hc06_read(io_buffer, number_of_chars_read);
-  render_controller_io_start_timeout_timer();
-}
-
-static void set_data_handlers(void)
-{
-  if (!operation_mode_is_set() || displays_conf_is_empty())
-  {
-    hc06_write((uint8_t *)UNCONFIGURED_STRING, strlen(UNCONFIGURED_STRING));
-    hc06_read(io_buffer, CMD_LEN);
-    return;
-  }
-  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
-  handler_set(operation_mode_get(), &handler_args);
-}
-
 static void receive_command(void)
 {
   // {"type":"conf"} ("mode"/"data") - 15 symbols
 
   if (!CHECK_STR(io_buffer + FIRST_FIELD_OFFSET, "type", strlen("type")))
     goto error;
-
-  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "conf", strlen("conf")))
+  
+  const char *handler_name = NULL;
+  for (uint8_t i = 0; i < HANDLERS_NUM; i++)
   {
-    set_configuration_handlers(receive_configuration, 73);
-    return;
-  }
-  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "mode", strlen("mode")))
-  {
-    set_configuration_handlers(receive_mode, 14);
-    return;
-  }
-  if (CHECK_STR(io_buffer + CMD_TYPE_OFFSET, "data", strlen("data")))
-  {
-    set_data_handlers();
-    return;
+    handler_name = handler_list_get_name(i);
+    if (handler_name == NULL)
+      break;
+    
+    if (CHECK_STR(
+      io_buffer + CMD_TYPE_OFFSET, handler_name, strlen(handler_name)
+    ))
+    {
+      handler_list_set(i, &handler_args);
+      return;
+    }
   }
   
 error:
@@ -206,12 +121,13 @@ void render_controller_create(
 )
 {
   hc06_set_baudrate(HC06_115200);
-  memcpy(modes, handlers, handlers_num * sizeof(handler));
+
+  handler_list_add(handlers, handlers_num);
 
   handler_args.data = io_buffer;
 
   hc06_read(io_buffer, CMD_LEN);
-  render_controller_io_create(&back_buffer);
+  render_controller_io_create(&front_buffer);
 
   captured_ticks = render_controller_io_get_ticks();
 }
@@ -227,7 +143,7 @@ void render_controller_destroy(void)
   led_panels_destroy(back_buffer);
   back_buffer = NULL;
 
-  operation_mode_clear();
+  handler_list_destroy();
   render_controller_io_destroy();
 }
 

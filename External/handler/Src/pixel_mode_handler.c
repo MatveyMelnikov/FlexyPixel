@@ -61,8 +61,10 @@ static void handle_pixel_data(handler_input *const input)
   send_status(is_ok);
 }
 
-void set_handlers(handler self, handler_input *const input)
+static void set_handlers(handler self, handler_input *const input)
 {
+  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
+
   handler_queue_clear();
   handler_queue_add(handle_pixel_data);
 
@@ -70,7 +72,7 @@ void set_handlers(handler self, handler_input *const input)
   render_controller_io_start_timeout_timer();
 }
 
-void destroy(handler self)
+static void destroy(handler self)
 {
   free(self);
 }
@@ -88,7 +90,7 @@ static handler_interface_struct interface =
 handler pixel_mode_handler_create()
 {
   handler handler = malloc(sizeof(handler_struct));
-  handler->mode_name = "PIX";
+  handler->name = "PIX";
   handler->vtable = &interface;
 
   return handler;

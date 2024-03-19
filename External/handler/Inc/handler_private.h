@@ -8,7 +8,7 @@ typedef struct handler_interface_struct * handler_interface;
 
 typedef struct handler_struct
 {
-  char *mode_name;
+  char *name;
   handler_interface vtable;
 } handler_struct;
 

@@ -18,5 +18,5 @@ void handler_set(
 
 char *const handler_get_name(handler self)
 {
-  return self->mode_name;
+  return self->name;
 }

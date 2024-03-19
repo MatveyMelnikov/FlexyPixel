@@ -2,6 +2,9 @@
 #include "render_controller.h"
 #include "mock_render_controller_io.h"
 #include "mock_hc06_io.h"
+#include "set_mode_handler.h"
+#include "set_config_handler.h"
+#include "send_data_handler.h"
 #include "pixel_mode_handler.h"
 #include <string.h>
 
@@ -9,7 +12,7 @@
 
 // Static variables ----------------------------------------------------------
 
-static handler modes[1];
+static handler modes[4];
 static char *ok_output = "{\"status\":\"OK\"}";
 static char *unconfigured_output = "{\"status\":\"UNCONFIGURED\"}";
 static char *error_output = "{\"status\":\"ERROR\"}";
@@ -35,7 +38,7 @@ static void start_render_controller(char *next_input)
     strlen(next_input)
   );
 
-  render_controller_create(modes, 1);
+  render_controller_create(modes, 4);
   render_controller_io_receive_complete();
 }
 
@@ -77,10 +80,13 @@ TEST_GROUP(render_controller);
 
 TEST_SETUP(render_controller)
 {
-  mock_render_controller_io_create(10);
-  mock_hc06_io_create(20);
+  mock_render_controller_io_create(20);
+  mock_hc06_io_create(30);
 
-  modes[0] = pixel_mode_handler_create();
+  modes[0] = set_mode_handler_create();
+  modes[1] = set_config_handler_create();
+  modes[2] = send_data_handler_create();
+  modes[3] = pixel_mode_handler_create();
 }
 
 TEST_TEAR_DOWN(render_controller)

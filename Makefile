@@ -68,10 +68,13 @@ $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_io.c \
 $(AUXILIARY_MODULES)/Src/list_of_changes.c \
 $(AUXILIARY_MODULES)/Src/displays_conf.c \
-$(AUXILIARY_MODULES)/Src/operation_mode.c \
 $(HANDLER)/Src/pixel_mode_handler.c \
+$(HANDLER)/Src/send_data_handler.c \
+$(HANDLER)/Src/set_config_handler.c \
+$(HANDLER)/Src/set_mode_handler.c \
 $(HANDLER)/Src/handler.c \
 $(HANDLER)/Src/handler_queue.c \
+$(HANDLER)/Src/handler_list.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \
 $(RENDER_CONTROLLER)/Src/render_controller_io.c
 
