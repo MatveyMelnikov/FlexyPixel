@@ -43,10 +43,16 @@ bool render_controller_io_is_timeout()
   return is_transmit_timeout;
 }
 
-void render_controller_io_send_frame_complete()
+void render_controller_io_send_complete()
 {
   if (*front_buffer)
     led_panels_send_complete(*front_buffer);
+}
+
+void render_controller_io_half_send_complete()
+{
+  if (*front_buffer)
+    led_panels_half_send_complete(*front_buffer);
 }
 
 void render_controller_io_receive_complete()

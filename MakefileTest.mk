@@ -54,7 +54,7 @@ $(TESTS_DIR)/mocks/Src/mock_hc06_io.c \
 $(TESTS_DIR)/fakes/Src/fake_hc06_time.c \
 $(TESTS_DIR)/host_tests/led_panels_driver/led_panels_test_runner.c \
 $(TESTS_DIR)/host_tests/led_panels_driver/led_panels_test.c \
-$(TESTS_DIR)/mocks/Src/mock_led_panels_io.c \
+$(TESTS_DIR)/fakes/Src/fake_led_panels_io.c \
 $(TESTS_DIR)/mocks/Src/mock_render_controller_io.c \
 $(TESTS_DIR)/host_tests/render_controller/render_controller_test_runner.c \
 $(TESTS_DIR)/host_tests/render_controller/render_controller_test.c \

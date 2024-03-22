@@ -28,9 +28,12 @@ typedef struct
 typedef struct
 {
   uint8_t *pwm_data;
+  uint8_t *pixel_data;
+  uint16_t pixel_data_size;
   uint16_t panels_num;
   led_panels_size *panels_sizes;
   bool is_locking;
+  uint16_t transmit_index;
 } led_panels_buffer;
 
 typedef enum

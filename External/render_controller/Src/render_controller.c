@@ -83,7 +83,7 @@ static void render()
 
   led_panels_send(front_buffer);
 
-  led_panels_copy_pwm_data(back_buffer, front_buffer);
+  led_panels_copy_data(back_buffer, front_buffer);
   
   pixels_have_changed = false;
 }

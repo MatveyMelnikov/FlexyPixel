@@ -400,10 +400,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
-	HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
-  htim2.Instance->CCR1 = 0; // period
-  //led_panels_send_complete(buffer);
-  render_controller_io_send_frame_complete();
+  render_controller_io_send_complete();
+}
+
+void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
+{
+  render_controller_io_half_send_complete();
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)

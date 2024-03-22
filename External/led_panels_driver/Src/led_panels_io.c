@@ -15,3 +15,9 @@ led_panels_status led_panels_io_send_data(
     data_size
   );
 }
+
+void led_panels_io_stop_sending_data()
+{
+	HAL_TIM_PWM_Stop_DMA(led_panels_tim, TIM_CHANNEL_1);
+  led_panels_tim->Instance->CCR1 = 0; // period
+}
