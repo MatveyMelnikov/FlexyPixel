@@ -3,6 +3,7 @@
 #include "render_controller_defs.h"
 #include "displays_conf.h"
 #include "handler_queue.h"
+#include "debug_output.h"
 #include <stdlib.h>
 
 // Static functions ----------------------------------------------------------
@@ -12,11 +13,14 @@ static void handle_configuration(handler_input *const input)
   // 73 symbols
   // {"configuration":["256","256","256","256","256","256","256","256","256"]}
 
+  bool is_ok = true;
   render_controller_io_stop_timeout_timer();
   if (is_first_field_not_suitable(input->data, "configuration"))
-    return;
+  {
+    is_ok = false;
+    goto handle_end;
+  }
 
-  bool is_ok = true;
   led_panels_size new_configuration[CONFIGURATION_SIZE] = { 0 };
   uint8_t displays_num = 0;
   for (; displays_num < CONFIGURATION_SIZE; displays_num++)
@@ -36,6 +40,7 @@ static void handle_configuration(handler_input *const input)
     new_configuration[displays_num] = display_size;
   }
 
+handle_end:
   if (is_ok)
     displays_conf_update(new_configuration, displays_num);
   send_status(is_ok);
@@ -50,6 +55,8 @@ static void set_handlers(handler self, handler_input *const input)
 
   hc06_read(input->data, 73);
   render_controller_io_start_timeout_timer();
+
+  DEBUG_OUTPUT("config handler set", strlen("config handler set"));
 }
 
 static void destroy(handler self)

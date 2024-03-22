@@ -4,6 +4,7 @@
 #include "displays_conf.h"
 #include "handler_list.h"
 #include "handler_queue.h"
+#include "debug_output.h"
 #include <stdlib.h>
 
 // Static functions ----------------------------------------------------------
@@ -34,6 +35,8 @@ static void handle_mode(handler_input *const input)
     }
   }
 
+  DEBUG_OUTPUT("mode set", strlen("mode set"));
+
   send_status(is_ok);
 }
 
@@ -46,6 +49,8 @@ static void set_handlers(handler self, handler_input *const input)
 
   hc06_read(input->data, 14);
   render_controller_io_start_timeout_timer();
+
+  DEBUG_OUTPUT("mode handler set", strlen("mode handler set"));
 }
 
 static void destroy(handler self)

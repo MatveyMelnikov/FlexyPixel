@@ -9,12 +9,12 @@
 #include "handler_queue.h"
 #include "handler_input.h"
 #include "list_of_changes.h"
+#include "debug_output.h"
 #include <memory.h>
 #include <stddef.h>
 
 // Static variables ----------------------------------------------------------
 
-//static handler modes[MODES_NUM] = { NULL };
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
@@ -34,6 +34,7 @@ static void set_configuration()
   led_panels_destroy(front_buffer);
   led_panels_destroy(back_buffer);
   
+  DEBUG_OUTPUT("configuration set", strlen("configuration set"));
   front_buffer = led_panels_create(
     displays_conf_get_displays_num(),
     displays_conf_get()
@@ -72,6 +73,8 @@ static void render()
 {
   if (front_buffer->is_locking || !pixels_have_changed)
     return;
+
+  DEBUG_OUTPUT("render start", strlen("render start"));
 
   // swap buffer
   led_panels_buffer *tmp = front_buffer;
@@ -152,6 +155,7 @@ bool render_controller_process()
   // input
   if (hc06_is_data_received())
   {
+    DEBUG_OUTPUT((char*)io_buffer, 70);
     if (!handler_queue_is_empty()) {
       handler_queue_run(&handler_args);
       if (handler_queue_is_empty())

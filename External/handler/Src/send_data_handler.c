@@ -3,6 +3,7 @@
 #include "render_controller_defs.h"
 #include "displays_conf.h"
 #include "handler_list.h"
+#include "debug_output.h"
 #include <stdlib.h>
 
 // Static functions ----------------------------------------------------------
@@ -17,6 +18,8 @@ static void set_handlers(handler self, handler_input *const input)
     hc06_read(input->data, CMD_LEN);
     return;
   }
+
+  DEBUG_OUTPUT("data handler set", strlen("data handler set"));
 
   handler_set(mode, input);
 }

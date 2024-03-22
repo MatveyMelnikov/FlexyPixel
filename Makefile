@@ -37,6 +37,7 @@ BUILD_DIR = build
 
 HC06_DRIVER = External/hc06_driver
 LED_PANELS_DRIVER = External/led_panels_driver
+EEPROM_DRIVER = External/eeprom_driver
 RENDER_CONTROLLER = External/render_controller
 AUXILIARY_MODULES = External/auxiliary_modules
 HANDLER = External/handler
@@ -66,8 +67,12 @@ $(HC06_DRIVER)/Src/hc06_io.c \
 $(HC06_DRIVER)/Src/hc06_time.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_io.c \
+$(EEPROM_DRIVER)/Src/eeprom_driver.c \
+$(EEPROM_DRIVER)/Src/eeprom_io.c \
+$(EEPROM_DRIVER)/Src/eeprom_time.c \
 $(AUXILIARY_MODULES)/Src/list_of_changes.c \
 $(AUXILIARY_MODULES)/Src/displays_conf.c \
+$(AUXILIARY_MODULES)/Src/debug_output.c \
 $(HANDLER)/Src/pixel_mode_handler.c \
 $(HANDLER)/Src/send_data_handler.c \
 $(HANDLER)/Src/set_config_handler.c \
@@ -144,6 +149,7 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -I$(HC06_DRIVER)/Inc \
 -I$(LED_PANELS_DRIVER)/Inc \
+-I$(EEPROM_DRIVER)/Inc \
 -I$(AUXILIARY_MODULES)/Inc \
 -I$(HANDLER)/Inc \
 -I$(RENDER_CONTROLLER)/Inc

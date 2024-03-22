@@ -73,6 +73,7 @@ static void MX_TIM3_Init(void);
 TIM_HandleTypeDef *led_panels_tim = &htim2;
 UART_HandleTypeDef *hc06_uart = &huart2;
 TIM_HandleTypeDef *render_controller_tim = &htim3;
+UART_HandleTypeDef *debug_uart = &huart1;
 /* USER CODE END 0 */
 
 /**
