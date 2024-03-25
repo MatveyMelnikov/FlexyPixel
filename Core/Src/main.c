@@ -26,6 +26,7 @@
 #include "set_config_handler.h"
 #include "send_data_handler.h"
 #include "pixel_mode_handler.h"
+#include "send_test_handler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,15 +117,16 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  static handler modes[4];
+  static handler modes[5];
   uint32_t tick = HAL_GetTick();
 
   modes[0] = set_mode_handler_create();
   modes[1] = set_config_handler_create();
   modes[2] = send_data_handler_create();
   modes[3] = pixel_mode_handler_create();
+  modes[4] = send_test_handler_create();
 
-  render_controller_create(modes, 4);
+  render_controller_create(modes, 5);
 
   while (1)
   {

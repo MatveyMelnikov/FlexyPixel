@@ -64,14 +64,13 @@ static void handle_pixel_data(handler_input *const input)
 
 static void set_handlers(handler self, handler_input *const input)
 {
-  hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
   handler_queue_clear();
   handler_queue_add(handle_pixel_data);
 
   hc06_read((uint8_t*)input->data, 60);
   render_controller_io_start_timeout_timer();
 
+  hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));
   DEBUG_OUTPUT("pixel mode handler set", strlen("pixel mode handler set"));
 }
 
