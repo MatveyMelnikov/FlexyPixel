@@ -4,7 +4,8 @@
 enum
 {
     EEPROM_TIMEOUT = 0x64U,
-    EEPROM_SIZE = 0x8000U
+    EEPROM_SIZE = 0x8000U,
+    EEPROM_PAGE_SIZE = 64U
 };
 
 #define DEV_ADDR 0xA0U

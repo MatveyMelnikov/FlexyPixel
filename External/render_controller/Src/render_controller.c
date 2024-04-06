@@ -9,6 +9,7 @@
 #include "handler_queue.h"
 #include "handler_input.h"
 #include "list_of_changes.h"
+#include "frame_buffer.h"
 #include "debug_output.h"
 #include <memory.h>
 #include <stddef.h>
@@ -16,7 +17,7 @@
 // Static variables ----------------------------------------------------------
 
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
-static bool pixels_have_changed = false;
+//static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
 static led_panels_buffer *back_buffer = NULL;
 static handler_input handler_args = { 0 };
@@ -63,7 +64,7 @@ static void fill_back_buffer()
       change.color
     );
 
-    pixels_have_changed = true;
+    //pixels_have_changed = true;
   }
 
   list_of_changes_clear();
@@ -71,10 +72,11 @@ static void fill_back_buffer()
 
 static void render()
 {
-  if (front_buffer->is_locking || !pixels_have_changed)
+  //if (front_buffer->is_locking || !pixels_have_changed)
+  if (front_buffer->is_locking)
     return;
 
-  DEBUG_OUTPUT("render start", strlen("render start"));
+  //DEBUG_OUTPUT("render start", strlen("render start"));
 
   // swap buffer
   led_panels_buffer *tmp = front_buffer;
@@ -85,7 +87,8 @@ static void render()
 
   led_panels_copy_data(back_buffer, front_buffer);
   
-  pixels_have_changed = false;
+  //pixels_have_changed = false;
+  frame_buffer_load(back_buffer);
 }
 
 static void receive_command(void)
@@ -116,6 +119,34 @@ error:
   hc06_read(io_buffer, CMD_LEN);
 }
 
+static void process_input()
+{
+  if (!hc06_is_data_received() || handler_queue_get_hold_flag()) // BUSY?
+    return;
+  DEBUG_OUTPUT((char*)io_buffer, 70);
+
+  if (handler_queue_is_empty()) {
+    receive_command();
+    return;
+  }
+
+  handler_queue_run(&handler_args);
+  if (handler_queue_is_empty())
+    hc06_read(io_buffer, CMD_LEN);
+}
+
+static void process_held_handlers()
+{
+  if (!handler_queue_get_hold_flag())
+    return;
+
+  if (!handler_queue_run(&handler_args))
+    handler_queue_set_hold(false);
+
+  if (handler_queue_is_empty())
+    hc06_read(io_buffer, CMD_LEN);
+}
+
 // Implemantations -----------------------------------------------------------
 
 void render_controller_create(
@@ -131,6 +162,7 @@ void render_controller_create(
 
   hc06_read(io_buffer, CMD_LEN);
   render_controller_io_create(&front_buffer);
+  frame_buffer_load_conf();
 
   captured_ticks = render_controller_io_get_ticks();
 }
@@ -148,22 +180,13 @@ void render_controller_destroy(void)
 
   handler_list_destroy();
   render_controller_io_destroy();
+  handler_queue_clear();
 }
 
 bool render_controller_process()
 {
-  // input
-  if (hc06_is_data_received())
-  {
-    DEBUG_OUTPUT((char*)io_buffer, 70);
-    if (!handler_queue_is_empty()) {
-      handler_queue_run(&handler_args);
-      if (handler_queue_is_empty())
-        hc06_read(io_buffer, CMD_LEN);
-    } else {
-      receive_command();
-    }
-  }
+  process_input();
+  process_held_handlers();
 
   if (render_controller_io_is_timeout())
   {

@@ -5,7 +5,7 @@
 
 enum
 {
-  HANDLERS_NUM = 5U,
+  HANDLERS_NUM = 6U,
 };
 
 void handler_list_add(handler *const new_handlers, uint8_t handlers_num);

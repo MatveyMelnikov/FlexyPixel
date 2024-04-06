@@ -199,3 +199,30 @@ TEST(eeprom_driver, page_133_write_success)
 
     TEST_ASSERT_EQUAL(EEPROM_OK, status);
 }
+
+TEST(eeprom_driver, page_aligned_write_success)
+{
+    uint16_t addr = 0x1c0;
+    uint8_t data[64] = { 0xff, 0xaa, 0xff, 0x0 };
+    memcpy(data + 60, data, 4);
+    uint8_t output_data[66];
+    ADD_ADDR_IN_BYTES(output_data, addr);
+    memcpy(output_data + 2, data, sizeof(data));
+    
+    mock_eeprom_io_expect_write(output_data, sizeof(output_data));
+
+    eeprom_status status = eeprom_aligned_page_write(addr, data);
+
+    TEST_ASSERT_EQUAL(EEPROM_OK, status);
+}
+
+TEST(eeprom_driver, page_aligned_write_error)
+{
+    uint16_t addr = 0x1c1;
+    uint8_t data[64] = { 0xff, 0xaa, 0xff, 0x0 };
+    memcpy(data + 60, data, 4);
+    
+    eeprom_status status = eeprom_aligned_page_write(addr, data);
+
+    TEST_ASSERT_EQUAL(EEPROM_ERROR, status);
+}

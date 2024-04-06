@@ -133,7 +133,6 @@ hc06_status hc06_write(const uint8_t *const data, const uint16_t size)
 
 hc06_status hc06_read(uint8_t *const data, const uint16_t size)
 {
-  //return hc06_io_read(data, size);
   if (is_data_receiving)
     return HC06_BUSY;
 

@@ -21,8 +21,7 @@ static uint16_t get_num_of_start_remaining_bytes(
     uint16_t size
 )
 {
-    uint8_t a = addr & 0x3f;
-    uint16_t result = 0x40 - a;
+    uint16_t result = 0x40 - (addr & 0x3f);
     if (result > size)
         result = size;
 
@@ -111,6 +110,28 @@ eeprom_status eeprom_byte_write(
     return status;
 }
 
+// Write page-sized pre-aligned data (64 bytes). Avoids additional delays
+eeprom_status eeprom_aligned_page_write(
+    const uint16_t addr,
+    const uint8_t *const data
+)
+{
+    static uint8_t buffer[66];
+
+    if (addr & 0x3f)
+      return EEPROM_ERROR;
+    if (addr + EEPROM_PAGE_SIZE >= EEPROM_SIZE)
+        return EEPROM_OVERFLOW;
+
+    uint16_t inverted_addr = invert_address(addr);
+
+    memcpy(buffer, (uint8_t*)&inverted_addr, sizeof(inverted_addr));
+    memcpy(buffer + 2, data, EEPROM_PAGE_SIZE); // first 2 bytes - addr
+    eeprom_status status = eeprom_io_write(buffer, EEPROM_PAGE_SIZE + 2);
+
+    return status;
+}
+
 eeprom_status eeprom_page_write(
     const uint16_t addr,
     const uint8_t *const data,
@@ -152,7 +173,7 @@ eeprom_status eeprom_page_write(
 
     if (remaining_size != 0)
     {
-      send_page(
+        send_page(
             current_addr,
             current_data_ptr,
             remaining_size,
@@ -210,4 +231,11 @@ eeprom_status eeprom_check_link(void)
     if (result != 0x55)
         status |= EEPROM_ERROR;
     return status;
+}
+
+bool eeprom_is_ready()
+{
+  static uint8_t test_data;
+
+  return eeprom_random_byte_read(0, &test_data) == EEPROM_OK;
 }

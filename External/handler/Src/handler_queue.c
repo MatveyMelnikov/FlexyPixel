@@ -14,6 +14,8 @@ static void (*handlers[QUEUE_SIZE])(handler_input *const) = {
 };
 static uint8_t top_index = 0;
 static uint8_t current_index = 0;
+static bool hold_flag = false;
+static bool skip_remove = false;
 
 // Implementations -----------------------------------------------------------
 
@@ -36,7 +38,14 @@ bool handler_queue_run(handler_input *const input)
     return false;
 
   handlers[current_index](input);
-  current_index++;
+
+  if (hold_flag)
+    return true;
+
+  if (skip_remove)
+    skip_remove = false;
+  else
+    current_index++;
 
   // finish handling
   if (handler_queue_is_empty())
@@ -55,4 +64,20 @@ void handler_queue_clear()
   memset(handlers, 0, sizeof(uint32_t) * QUEUE_SIZE);
   current_index = 0;
   top_index = 0;
+  hold_flag = false;
+}
+
+void handler_queue_set_hold(bool is_hold)
+{
+  hold_flag = is_hold;
+}
+
+bool handler_queue_get_hold_flag()
+{
+  return hold_flag;
+}
+
+void handler_queue_skip_remove()
+{
+  skip_remove = true;
 }
