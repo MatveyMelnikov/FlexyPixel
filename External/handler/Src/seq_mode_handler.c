@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+// #include "stm32f1xx.h"
 
 // Defines -------------------------------------------------------------------
 
@@ -23,7 +24,8 @@
 // Static variables ----------------------------------------------------------
 
 static int16_t remaining_frames = 0;
-static uint8_t current_display = 0;
+// static uint32_t send_time = 0;
+// static uint32_t proccess_time = 0;
 
 // Static functions ----------------------------------------------------------
 
@@ -38,6 +40,11 @@ static bool is_amount_cmd_wrong(handler_input *const input)
   return (displays_conf_is_empty() || is_field_wrong);
 }
 
+static bool are_frames_left()
+{
+  return --remaining_frames > 0;
+}
+
 static void handle_seq_data(handler_input *const input)
 {
   // Symbols: 204 (for 8x8 panels)
@@ -47,16 +54,20 @@ static void handle_seq_data(handler_input *const input)
 
   if (!handler_queue_get_hold_flag()) // First call
   {
+    //send_time = HAL_GetTick() - send_time;
     if (is_seq_cmd_wrong(input))
       END_HANDLE_WITH_ERROR();
 
+    //proccess_time = HAL_GetTick();
+
+    frame_buffer_lock(true);
     frame_buffer_set(input->data + 10);
     frame_buffer_save();
     handler_queue_set_hold(true);
     return;
   }
 
-  if (!frame_buffer_is_saved()) // Page is not saved
+  if (frame_buffer_is_busy()) // Page is not saved
     return;
   if (frame_buffer_save()) // Not all data saved
     return;
@@ -64,10 +75,12 @@ static void handle_seq_data(handler_input *const input)
   handler_queue_set_hold(false);
   //hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
-  if (remaining_frames == 2)
-    __asm("nop");
+  // if (remaining_frames == 2)
+  //   __asm("nop");
 
-  if (--remaining_frames > 0)
+  // There are still frames left to get
+  //if (--remaining_frames > 0)
+  if (are_frames_left())
   {
     //handler_queue_add(handle_seq_data);
     handler_queue_skip_remove();
@@ -77,6 +90,12 @@ static void handle_seq_data(handler_input *const input)
     return;
   }
 
+  //proccess_time = HAL_GetTick() - proccess_time;
+
+  // if (proccess_time == 0 || send_time == 0)
+  //   __asm("nop");
+
+  frame_buffer_lock(false);
   handler_queue_clear();
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 }
@@ -95,18 +114,17 @@ static void handle_frames_amount(handler_input *const input)
   if (frames_amount > MAX_FRAMES_AMOUNT)
     END_HANDLE_WITH_ERROR();
   
+  frame_buffer_reset();
+  
   remaining_frames = frames_amount;
   frame_buffer_set_frames_num(frames_amount);
 
-  // if (!displays_conf_is_panel_configured(current_display))
-  //   END_HANDLE_WITH_ERROR();
-
   handler_queue_add(handle_seq_data);
 
-  //uint16_t bytes_to_read = displays_conf_get()[current_display] * 3 + 12;
   hc06_read((uint8_t*)input->data, displays_conf_get_pixels_num() * 3 + 12);
   render_controller_io_start_timeout_timer();
 
+  //send_time = HAL_GetTick();
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 }
 

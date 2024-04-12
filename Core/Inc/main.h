@@ -59,12 +59,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Heart_Beat_Pin GPIO_PIN_13
+#define Heart_Beat_GPIO_Port GPIOC
 #define PANELS_OUTPUT_Pin GPIO_PIN_0
 #define PANELS_OUTPUT_GPIO_Port GPIOA
 #define HC06_TX_Pin GPIO_PIN_2
 #define HC06_TX_GPIO_Port GPIOA
 #define HC06_RX_Pin GPIO_PIN_3
 #define HC06_RX_GPIO_Port GPIOA
+#define Flash_SCK_Pin GPIO_PIN_5
+#define Flash_SCK_GPIO_Port GPIOA
+#define Flash_MISO_Pin GPIO_PIN_6
+#define Flash_MISO_GPIO_Port GPIOA
+#define Flash_MOSI_Pin GPIO_PIN_7
+#define Flash_MOSI_GPIO_Port GPIOA
+#define Flash_CS_Pin GPIO_PIN_0
+#define Flash_CS_GPIO_Port GPIOB
 #define USB_TX_Pin GPIO_PIN_9
 #define USB_TX_GPIO_Port GPIOA
 #define USB_RX_Pin GPIO_PIN_10

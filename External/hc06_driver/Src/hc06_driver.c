@@ -11,7 +11,6 @@ static char buffer[HC06_BUFFER_SIZE];
 static char *baudrate_cmd = "AT+UART=%u,0,0\r\n";
 static char *change_name_cmd = "AT+NAME=%s\r\n";
 static char *change_pin_cmd = "AT+PSWD=\"%04u\"\r\n";
-static char *hex_symbols = "123456789A";
 static const uint32_t baudrate_int[] = {
   1200, 2400, 4800, 9600, 19200, 38400, 
   57600, 115200, 230400, 460800

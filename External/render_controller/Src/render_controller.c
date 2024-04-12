@@ -73,7 +73,7 @@ static void fill_back_buffer()
 static void render()
 {
   //if (front_buffer->is_locking || !pixels_have_changed)
-  if (front_buffer->is_locking)
+  if (front_buffer->is_locking || frame_buffer_is_locked())
     return;
 
   //DEBUG_OUTPUT("render start", strlen("render start"));

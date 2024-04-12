@@ -8,7 +8,7 @@ static void run_all_tests()
 {
 	RUN_TEST_GROUP(hc06_driver);
   RUN_TEST_GROUP(led_panels_driver);
-  RUN_TEST_GROUP(eeprom_driver);
+  RUN_TEST_GROUP(flash_driver);
   RUN_TEST_GROUP(render_controller);
 }
 
