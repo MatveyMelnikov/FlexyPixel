@@ -10,8 +10,8 @@
 
 static void handle_configuration(handler_input *const input)
 {
-  // 73 symbols
-  // {"configuration":["256","256","256","256","256","256","256","256","256"]}
+  // 47 symbols
+  // {"configuration":"256064000000000000000000000"}
 
   bool is_ok = true;
   render_controller_io_stop_timeout_timer();
@@ -26,12 +26,14 @@ static void handle_configuration(handler_input *const input)
   for (; displays_num < CONFIGURATION_SIZE; displays_num++)
   {
     uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + CONFIGURATION_OFFSET + (6 * displays_num)
+      (char *)input->data + 18 + (3 * displays_num)
     );
     if (display_size == 0)
       break;
-    if (display_size != LED_PANELS_SIZE_64 && 
-      display_size != LED_PANELS_SIZE_256)
+    if (
+      display_size != LED_PANELS_SIZE_64 && 
+      display_size != LED_PANELS_SIZE_256
+    )
     {
       is_ok = false;
       break;
@@ -53,7 +55,7 @@ static void set_handlers(handler self, handler_input *const input)
   handler_queue_clear();
   handler_queue_add(handle_configuration);
 
-  hc06_read(input->data, 73);
+  hc06_read(input->data, 47);
   render_controller_io_start_timeout_timer();
 
   DEBUG_OUTPUT("config handler set", strlen("config handler set"));
