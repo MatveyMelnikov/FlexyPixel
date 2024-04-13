@@ -78,7 +78,6 @@ $(HANDLER)/Src/seq_mode_handler.c \
 $(HANDLER)/Src/send_data_handler.c \
 $(HANDLER)/Src/set_config_handler.c \
 $(HANDLER)/Src/set_mode_handler.c \
-$(HANDLER)/Src/send_test_handler.c \
 $(HANDLER)/Src/handler.c \
 $(HANDLER)/Src/handler_queue.c \
 $(HANDLER)/Src/handler_list.c \

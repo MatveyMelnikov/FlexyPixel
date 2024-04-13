@@ -10,14 +10,12 @@ bool handler_queue_add(
 bool handler_queue_run(handler_input *const input);
 bool handler_queue_is_empty(void);
 void handler_queue_clear(void);
-// Sets the value of the hold flag. It is responsible for
-// whether the handlerwill be removed upon completion of its work
+// Enable hold handler - it will not be removed from the handler queue
+// until the flag is cleared
 void handler_queue_set_hold(bool is_hold);
-// Hold flag is responsible for
-// whether the handlerwill be removed upon completion of its work
+// The hold flag keeps the handler from being deleted
 bool handler_queue_get_hold_flag(void);
-// Single bypasses removing a handler from the queue.
-// Next time it will work again
+// Single omission of handler removal after calling it
 void handler_queue_skip_remove(void);
 
 #endif

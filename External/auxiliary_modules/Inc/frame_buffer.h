@@ -6,7 +6,8 @@
 enum {
   FRAME_BUFFER_SIZE = 896U, // 14 pages - start byte + data (8x8 panel)
   MEMORY_PAGE_SIZE = 256U,
-  MEMORY_SECTOR_SIZE = 4096U
+  MEMORY_SECTOR_SIZE = 4096U,
+  FRAME_SIZE_IN_MEMORY = 1024U
 };
 
 typedef enum
@@ -17,8 +18,9 @@ typedef enum
   FRAME_BUFFER_LOCK = 0x03U
 } frame_buffer_status;
 
-void frame_buffer_set_frames_num(uint8_t num);
+void frame_buffer_set_frames_amount(uint16_t amount);
 void frame_buffer_set(const uint8_t *data);
+// Disable reading from buffer
 void frame_buffer_lock(bool is_locked);
 bool frame_buffer_is_locked(void);
 bool frame_buffer_is_busy(void);

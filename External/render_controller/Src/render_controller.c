@@ -119,9 +119,10 @@ error:
   hc06_read(io_buffer, CMD_LEN);
 }
 
+// Input is not processed when the handler is held down
 static void process_input()
 {
-  if (!hc06_is_data_received() || handler_queue_get_hold_flag()) // BUSY?
+  if (!hc06_is_data_received() || handler_queue_get_hold_flag())
     return;
   DEBUG_OUTPUT((char*)io_buffer, 70);
 

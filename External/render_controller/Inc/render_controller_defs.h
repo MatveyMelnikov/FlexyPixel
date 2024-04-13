@@ -15,7 +15,7 @@ enum
   CONFIGURATION_OFFSET = 19U,
   MODE_LEN = 3U,
   RENDER_DELAY = 46U, // 21 fps - 1 ms
-  MAX_FRAMES_AMOUNT = 64U
+  MAX_FRAMES_AMOUNT = 999U
 };
 
 #define OK_STRING "{\"status\":\"OK\"}"

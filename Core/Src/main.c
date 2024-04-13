@@ -26,13 +26,15 @@
 #include "set_config_handler.h"
 #include "send_data_handler.h"
 #include "pixel_mode_handler.h"
-#include "send_test_handler.h"
 #include "seq_mode_handler.h"
-#include "flash_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
+enum {
+  HEART_BEAT_DELAY = 500U
+};
 
 /* USER CODE END PTD */
 
@@ -124,40 +126,14 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  // while (flash_driver_is_busy() == FLASH_DRIVER_BUSY) {}
-  // //flash_driver_status status = flash_driver_sector_erase(0);
-  // uint8_t page[4096];
-  // page[128] = 0xaa;
-  // page[256] = 0xaa;
-  // page[384] = 0xaa;
-  // page[512] = 0xaa;
-  // page[1024] = 0xaa;
-  // page[1500] = 0xaa;
-  // page[2000] = 0xaa;
-  // page[3000] = 0xaa;
-  // page[3700] = 0xaa;
-
-  // flash_driver_status status = 0;
-  // for (uint16_t i = 0; i < 4096; i += 256)
-  // {
-  //   status = flash_driver_write(i, page + i, 256);
-  //   while (flash_driver_is_busy() == FLASH_DRIVER_BUSY) {}
-  // }
-  // status |= flash_driver_read(0, page, sizeof(page));
-  // while (flash_driver_is_busy() == FLASH_DRIVER_BUSY) {}
-
-  // if (status || page[0])
-  //   __asm("nop");
-
-  static handler modes[6];
+  static handler modes[5];
   uint32_t tick = HAL_GetTick();
 
   modes[0] = set_mode_handler_create();
   modes[1] = set_config_handler_create();
   modes[2] = send_data_handler_create();
   modes[3] = pixel_mode_handler_create();
-  modes[4] = send_test_handler_create();
-  modes[5] = seq_mode_handler_create();
+  modes[4] = seq_mode_handler_create();
 
   render_controller_create(modes, 6);
 
@@ -168,7 +144,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     render_controller_process();
 
-    if (HAL_GetTick() - tick < 500)
+    if ((HAL_GetTick() - tick) < HEART_BEAT_DELAY)
       continue;
 
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);

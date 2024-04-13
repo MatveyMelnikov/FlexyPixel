@@ -24,8 +24,6 @@
 // Static variables ----------------------------------------------------------
 
 static int16_t remaining_frames = 0;
-// static uint32_t send_time = 0;
-// static uint32_t proccess_time = 0;
 
 // Static functions ----------------------------------------------------------
 
@@ -54,11 +52,8 @@ static void handle_seq_data(handler_input *const input)
 
   if (!handler_queue_get_hold_flag()) // First call
   {
-    //send_time = HAL_GetTick() - send_time;
     if (is_seq_cmd_wrong(input))
       END_HANDLE_WITH_ERROR();
-
-    //proccess_time = HAL_GetTick();
 
     frame_buffer_lock(true);
     frame_buffer_set(input->data + 10);
@@ -73,27 +68,15 @@ static void handle_seq_data(handler_input *const input)
     return;
 
   handler_queue_set_hold(false);
-  //hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
-  // if (remaining_frames == 2)
-  //   __asm("nop");
-
-  // There are still frames left to get
-  //if (--remaining_frames > 0)
   if (are_frames_left())
   {
-    //handler_queue_add(handle_seq_data);
     handler_queue_skip_remove();
     hc06_read((uint8_t*)input->data, displays_conf_get_pixels_num() * 3 + 12);
     render_controller_io_start_timeout_timer();
     hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
     return;
   }
-
-  //proccess_time = HAL_GetTick() - proccess_time;
-
-  // if (proccess_time == 0 || send_time == 0)
-  //   __asm("nop");
 
   frame_buffer_lock(false);
   handler_queue_clear();
@@ -109,22 +92,20 @@ static void handle_frames_amount(handler_input *const input)
   if (is_amount_cmd_wrong(input))
     END_HANDLE_WITH_ERROR();
 
-  uint8_t frames_amount = STR_TO_NUM(input->data + 17);
-
+  uint16_t frames_amount = STR_TO_NUM(input->data + 17);
   if (frames_amount > MAX_FRAMES_AMOUNT)
     END_HANDLE_WITH_ERROR();
   
   frame_buffer_reset();
   
   remaining_frames = frames_amount;
-  frame_buffer_set_frames_num(frames_amount);
+  frame_buffer_set_frames_amount(frames_amount);
 
   handler_queue_add(handle_seq_data);
 
   hc06_read((uint8_t*)input->data, displays_conf_get_pixels_num() * 3 + 12);
   render_controller_io_start_timeout_timer();
 
-  //send_time = HAL_GetTick();
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 }
 
@@ -132,7 +113,6 @@ static void set_handlers(handler self, handler_input *const input)
 {
   handler_queue_clear();
   remaining_frames = 0;
-  //current_display = 0;
 
   handler_queue_add(handle_frames_amount);
 

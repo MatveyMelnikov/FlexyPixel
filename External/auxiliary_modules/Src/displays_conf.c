@@ -15,6 +15,7 @@ void displays_conf_update(
   uint8_t num
 )
 {
+  memset(display_configuration, 0, sizeof(display_configuration));
   displays_num = num;
 
   memcpy(
