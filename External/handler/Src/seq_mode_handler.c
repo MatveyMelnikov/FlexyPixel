@@ -1,5 +1,6 @@
 #include "seq_mode_handler.h"
 #include "hc06_driver.h"
+#include "render_controller.h"
 #include "render_controller_io.h"
 #include "render_controller_defs.h"
 #include "handler_queue.h"
@@ -21,11 +22,34 @@
     return; \
   }
 
+// #define STR_TO_DELAY(str) \
+//   (uint16_t)CHAR_TO_NUM(str) * 10000000 + \
+//   (uint16_t)CHAR_TO_NUM(str + 1) * 1000000 + \
+//   (uint16_t)CHAR_TO_NUM(str + 2) * 100000 + \
+//   (uint16_t)CHAR_TO_NUM(str + 3) * 10000 + \
+//   (uint16_t)CHAR_TO_NUM(str + 4) * 1000 + \
+//   (uint16_t)CHAR_TO_NUM(str + 5) * 100 + \
+//   (uint16_t)CHAR_TO_NUM(str + 6) * 10 + \
+//   (uint16_t)CHAR_TO_NUM(str + 7)
+
 // Static variables ----------------------------------------------------------
 
 static int16_t remaining_frames = 0;
 
 // Static functions ----------------------------------------------------------
+
+static uint32_t convert_str_to_delay(const uint8_t *const str)
+{
+  uint32_t result = 0;
+  uint32_t delimeter = 10000000;
+  for (uint8_t i = 0; i < 8; i++)
+  {
+    result += (uint32_t)CHAR_TO_NUM(str + i) * delimeter;
+    delimeter /= 10;
+  }
+
+  return result;
+}
 
 static bool is_seq_cmd_wrong(handler_input *const input)
 {
@@ -87,6 +111,10 @@ static void handle_frames_amount(handler_input *const input)
 {
   // Symbols: 23
   // {"framesAmount":"030"}
+  
+  
+  // Symbols: 51
+  // {"framesAmount":"030","interframeDelay":"00000000"}
 
   render_controller_io_stop_timeout_timer();
   if (is_amount_cmd_wrong(input))
@@ -95,6 +123,11 @@ static void handle_frames_amount(handler_input *const input)
   uint16_t frames_amount = STR_TO_NUM(input->data + 17);
   if (frames_amount > MAX_FRAMES_AMOUNT)
     END_HANDLE_WITH_ERROR();
+
+  uint32_t delay = convert_str_to_delay(input->data + 41);
+  if (delay > 86400000U)
+    END_HANDLE_WITH_ERROR();
+  render_controller_set_delay(delay);
   
   frame_buffer_reset();
   
@@ -116,7 +149,7 @@ static void set_handlers(handler self, handler_input *const input)
 
   handler_queue_add(handle_frames_amount);
 
-  hc06_read((uint8_t*)input->data, 22);
+  hc06_read((uint8_t*)input->data, 51);
   render_controller_io_start_timeout_timer();
 
   hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));

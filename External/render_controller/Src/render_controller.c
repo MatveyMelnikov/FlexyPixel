@@ -16,6 +16,7 @@
 
 // Static variables ----------------------------------------------------------
 
+static uint32_t render_delay = RENDER_DELAY;
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
 //static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
@@ -150,6 +151,11 @@ static void process_held_handlers()
 
 // Implemantations -----------------------------------------------------------
 
+void render_controller_set_delay(const uint32_t delay)
+{
+  render_delay = delay;
+}
+
 void render_controller_create(
   handler *const handlers,
   uint8_t handlers_num
@@ -203,7 +209,7 @@ bool render_controller_process()
     return false;
   fill_back_buffer();
 
-  if ((render_controller_io_get_ticks() - captured_ticks) < RENDER_DELAY)
+  if ((render_controller_io_get_ticks() - captured_ticks) < render_delay)
     return true;
 
   captured_ticks = render_controller_io_get_ticks();
