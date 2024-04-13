@@ -6,6 +6,13 @@
 #include "debug_output.h"
 #include <stdlib.h>
 
+// Variables -----------------------------------------------------------------
+
+enum
+{
+  CONFIGURATION_OFFSET = 18U
+};
+
 // Static functions ----------------------------------------------------------
 
 static void handle_configuration(handler_input *const input)
@@ -26,7 +33,7 @@ static void handle_configuration(handler_input *const input)
   for (; displays_num < CONFIGURATION_SIZE; displays_num++)
   {
     uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + 18 + (3 * displays_num)
+      (char *)input->data + CONFIGURATION_OFFSET + (3 * displays_num)
     );
     if (display_size == 0)
       break;
