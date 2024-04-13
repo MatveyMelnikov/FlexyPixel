@@ -12,6 +12,27 @@
 #define PUT_UINT16(data_ptr, num) \
   *(uint16_t*)(data_ptr) = (num)
 
+#define PUT_UINT32(data_ptr, num) \
+  *(uint32_t*)(data_ptr) = (num)
+
+// Enums ---------------------------------------------------------------------
+
+enum {
+  FRAME_BUFFER_SIZE = 896U, // 14 pages - start byte + data (8x8 panel)
+  MEMORY_PAGE_SIZE = 256U,
+  MEMORY_SECTOR_SIZE = 4096U,
+  FRAME_SIZE_IN_MEMORY = 1024U,
+  DEFAULT_RENDER_DELAY = 46U, // minimum delay 21 fps - 1 ms
+  MAX_RENDER_DELAY = 86400000U,
+  START_BYTES_VALUE = 0xaaU,
+  START_BYTES_AMOUNT = 13U,
+  DELAY_OFFSET = 13U,
+  FRAMES_AMOUNT_OFFSET = 19U,
+  SIZE_OF_FRAME_OFFSET = 30U,
+  CONF_OFFSET = 21U,
+  DATA_OFFSET = 32U,
+};
+
 // Static variables ----------------------------------------------------------
 
 static uint8_t frame_buffer[FRAME_BUFFER_SIZE]; // RGB
@@ -22,6 +43,7 @@ static uint16_t loaded_frame = 0;
 static uint32_t loaded_addr = 0;
 static uint16_t frames_amount = 0;
 static uint16_t erased_frame_index = 0;
+static uint32_t render_delay = DEFAULT_RENDER_DELAY;
 static bool lock = false;
 
 // Static functions ----------------------------------------------------------
@@ -68,13 +90,14 @@ void frame_buffer_set_frames_amount(uint16_t amount)
 
 void frame_buffer_set(const uint8_t *data)
 {
-  // memset(frame_buffer, 0xaa, 32); // start bytes
-  memset(frame_buffer, 0xaa, 18); // start bytes
-  PUT_UINT16(frame_buffer + 19, frames_amount);
-  PUT_UINT16(frame_buffer + 30, sizeof(frame_buffer)); // only for 8x8
+  memset(frame_buffer, START_BYTES_VALUE, START_BYTES_AMOUNT);
+  PUT_UINT32(frame_buffer + DELAY_OFFSET, render_delay);
+  PUT_UINT16(frame_buffer + FRAMES_AMOUNT_OFFSET, frames_amount);
+  // only for 8x8
+  PUT_UINT16(frame_buffer + SIZE_OF_FRAME_OFFSET, sizeof(frame_buffer));
 
   // Set current configuration
-  uint8_t *frame_conf = frame_buffer + 21;
+  uint8_t *frame_conf = frame_buffer + CONF_OFFSET;
   for (uint8_t i = 0; i < CONFIGURATION_SIZE; i++)
   {
     uint16_t display_size = displays_conf_get()[i];
@@ -89,7 +112,7 @@ void frame_buffer_set(const uint8_t *data)
 
   for (uint16_t data_index = 0; data_index < pixels_num; data_index += 6)
   {
-    uint16_t frame_index = 32 + data_index / 2;
+    uint16_t frame_index = DATA_OFFSET + data_index / 2;
     convert_pixels_to_data(data + data_index, frame_index);
   }
 }
@@ -154,7 +177,7 @@ frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
   }
 
   flash_driver_status status = flash_driver_read(
-    loaded_addr + 30,
+    loaded_addr + SIZE_OF_FRAME_OFFSET,
     (uint8_t*)&frame_size,
     sizeof(uint16_t)
   );
@@ -177,7 +200,7 @@ frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
 
   memcpy(
     buffer->pixel_data,
-    frame_buffer + 32,
+    frame_buffer + DATA_OFFSET,
     buffer->pixel_data_size
   );
 
@@ -192,6 +215,7 @@ error:
 void frame_buffer_load_conf()
 {
   uint8_t frame_start = 0;
+  uint32_t delay = 0;
   uint16_t frame_size = 0;
 
   frame_buffer_reset();
@@ -201,26 +225,37 @@ void frame_buffer_load_conf()
   if (status || frame_start != 0xaa)
     return;
 
-  status = flash_driver_read(30, (uint8_t*)&frame_size, sizeof(uint16_t));
+  status = flash_driver_read(
+    SIZE_OF_FRAME_OFFSET,
+    (uint8_t*)&frame_size,
+    sizeof(uint16_t)
+  );
   if (frame_size != sizeof(frame_buffer) || status)
     return;
+
+  status = flash_driver_read(DELAY_OFFSET, (uint8_t*)&delay, sizeof(uint32_t));
+  frame_buffer_set_render_delay(delay);
   
-  status = flash_driver_read(19, (uint8_t*)&frames_amount, sizeof(uint16_t));
+  status = flash_driver_read(
+    FRAMES_AMOUNT_OFFSET,
+    (uint8_t*)&frames_amount,
+    sizeof(uint16_t)
+  );
   if (frames_amount == 0 || status)
     return;
 
   // Load configuration of frame
   led_panels_size configuration[CONFIGURATION_SIZE];
-  uint8_t loaded_configuration[9] = { 0 };
+  uint8_t loaded_configuration[CONFIGURATION_SIZE] = { 0 };
   uint8_t display_index = 0;
 
   status = flash_driver_read(
-    21,
+    CONF_OFFSET,
     loaded_configuration,
     sizeof(loaded_configuration)
   );
   if (status)
-    return status;
+    return;
 
   for (; display_index < CONFIGURATION_SIZE; display_index++)
   {
@@ -233,6 +268,21 @@ void frame_buffer_load_conf()
   displays_conf_update(configuration, display_index);
 }
 
+void frame_buffer_set_render_delay(const uint32_t delay)
+{
+  if (delay > MAX_RENDER_DELAY)
+    render_delay = MAX_RENDER_DELAY;
+  else if (delay < DEFAULT_RENDER_DELAY)
+    render_delay = DEFAULT_RENDER_DELAY;
+  else
+    render_delay = delay;
+}
+
+uint32_t frame_buffer_get_render_delay()
+{
+  return render_delay;
+}
+
 void frame_buffer_reset()
 {
   page_num = 0;
@@ -241,4 +291,5 @@ void frame_buffer_reset()
   frame_index = 0;
   erased_frame_index = 0;
   lock = false;
+  render_delay = DEFAULT_RENDER_DELAY;
 }

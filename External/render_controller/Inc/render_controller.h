@@ -5,7 +5,6 @@
 #include "render_controller_io.h"
 #include <stdint.h>
 
-void render_controller_set_delay(const uint32_t delay);
 void render_controller_create(
   handler *const handlers,
   uint8_t handlers_num

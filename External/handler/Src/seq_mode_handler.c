@@ -22,16 +22,6 @@
     return; \
   }
 
-// #define STR_TO_DELAY(str) \
-//   (uint16_t)CHAR_TO_NUM(str) * 10000000 + \
-//   (uint16_t)CHAR_TO_NUM(str + 1) * 1000000 + \
-//   (uint16_t)CHAR_TO_NUM(str + 2) * 100000 + \
-//   (uint16_t)CHAR_TO_NUM(str + 3) * 10000 + \
-//   (uint16_t)CHAR_TO_NUM(str + 4) * 1000 + \
-//   (uint16_t)CHAR_TO_NUM(str + 5) * 100 + \
-//   (uint16_t)CHAR_TO_NUM(str + 6) * 10 + \
-//   (uint16_t)CHAR_TO_NUM(str + 7)
-
 // Static variables ----------------------------------------------------------
 
 static int16_t remaining_frames = 0;
@@ -127,10 +117,11 @@ static void handle_frames_amount(handler_input *const input)
   uint32_t delay = convert_str_to_delay(input->data + 41);
   if (delay > 86400000U)
     END_HANDLE_WITH_ERROR();
-  render_controller_set_delay(delay);
   
   frame_buffer_reset();
   
+  frame_buffer_set_render_delay(delay);
+
   remaining_frames = frames_amount;
   frame_buffer_set_frames_amount(frames_amount);
 

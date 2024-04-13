@@ -13,7 +13,7 @@ enum
   CMD_LEN = 15U,
   MODE_OFFSET = 9U,
   MODE_LEN = 3U,
-  RENDER_DELAY = 46U, // 21 fps - 1 ms
+  //RENDER_DELAY = 46U, // 21 fps - 1 ms
   MAX_FRAMES_AMOUNT = 999U
 };
 
