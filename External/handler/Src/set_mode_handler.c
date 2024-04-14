@@ -7,6 +7,12 @@
 #include "debug_output.h"
 #include <stdlib.h>
 
+// Variables -----------------------------------------------------------------
+
+enum {
+  MODE_CMD_LENGTH = 14U,
+};
+
 // Static functions ----------------------------------------------------------
 
 static void handle_mode(handler_input *const input)
@@ -47,7 +53,7 @@ static void set_handlers(handler self, handler_input *const input)
   handler_queue_clear();
   handler_queue_add(handle_mode);
 
-  hc06_read(input->data, 14);
+  hc06_read(input->data, MODE_CMD_LENGTH);
   render_controller_io_start_timeout_timer();
 
   DEBUG_OUTPUT("mode handler set", strlen("mode handler set"));

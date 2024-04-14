@@ -11,6 +11,19 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+// Variables -----------------------------------------------------------------
+
+enum {
+  RED_OFFSET = 33U,
+  GREEN_OFFSET = 34U,
+  BLUE_OFFSET = 35U,
+  PANEL_POS_OFFSET = 17U,
+  PIXEL_POS_OFFSET = 55,
+  PANEL_POS_FIELD_OFFSET = 2U,
+  PIXEL_POS_FIELD_OFFSET = 39U,
+  PIXEL_CMD_LENGTH = 60U,
+};
+
 // Defines -------------------------------------------------------------------
 
 #define END_HANDLE_WITH_ERROR() \
@@ -23,8 +36,16 @@
 
 static bool is_transmit_wrong(handler_input *const input)
 {
-  bool is_first_field = !CHECK_STR(input->data + 2, "panelPosition", 13);
-  bool is_last_field = !CHECK_STR(input->data + 39, "pixelPosition", 13);
+  bool is_first_field = !CHECK_STR(
+    input->data + PANEL_POS_FIELD_OFFSET,
+    "panelPosition",
+    sizeof("panelPosition")
+  );
+  bool is_last_field = !CHECK_STR(
+    input->data + PIXEL_POS_FIELD_OFFSET,
+    "pixelPosition",
+    sizeof("pixelPosition")
+  );
   return (displays_conf_is_empty() || is_first_field || is_last_field);
 }
 
@@ -37,13 +58,13 @@ static void handle_pixel_data(handler_input *const input)
   if (is_transmit_wrong(input))
     END_HANDLE_WITH_ERROR();
 
-  uint8_t panel_position = CHAR_TO_NUM(input->data + 17);
+  uint8_t panel_position = CHAR_TO_NUM(input->data + PANEL_POS_OFFSET);
   led_panels_color color = (led_panels_color) {
-    .red = CHAR_TO_NUM(input->data + 33),
-    .green = CHAR_TO_NUM(input->data + 34),
-    .blue = CHAR_TO_NUM(input->data + 35)
+    .red = CHAR_TO_NUM(input->data + RED_OFFSET),
+    .green = CHAR_TO_NUM(input->data + GREEN_OFFSET),
+    .blue = CHAR_TO_NUM(input->data + BLUE_OFFSET)
   };
-  uint8_t pixel_position = STR_TO_NUM(input->data + 55);
+  uint8_t pixel_position = STR_TO_NUM(input->data + PIXEL_POS_OFFSET);
 
   if (!displays_conf_is_panel_configured(panel_position))
     END_HANDLE_WITH_ERROR();
@@ -67,7 +88,7 @@ static void set_handlers(handler self, handler_input *const input)
   handler_queue_clear();
   handler_queue_add(handle_pixel_data);
 
-  hc06_read((uint8_t*)input->data, 60);
+  hc06_read((uint8_t*)input->data, PIXEL_CMD_LENGTH);
   render_controller_io_start_timeout_timer();
 
   hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));

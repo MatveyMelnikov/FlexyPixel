@@ -10,7 +10,8 @@
 
 enum
 {
-  CONFIGURATION_OFFSET = 18U
+  CONF_OFFSET = 18U,
+  CONF_CMD_LENGTH = 47U,
 };
 
 // Static functions ----------------------------------------------------------
@@ -33,7 +34,7 @@ static void handle_configuration(handler_input *const input)
   for (; displays_num < CONFIGURATION_SIZE; displays_num++)
   {
     uint16_t display_size = STR_TO_NUM(
-      (char *)input->data + CONFIGURATION_OFFSET + (3 * displays_num)
+      (char *)input->data + CONF_OFFSET + (3 * displays_num)
     );
     if (display_size == 0)
       break;
@@ -62,7 +63,7 @@ static void set_handlers(handler self, handler_input *const input)
   handler_queue_clear();
   handler_queue_add(handle_configuration);
 
-  hc06_read(input->data, 47);
+  hc06_read(input->data, CONF_CMD_LENGTH);
   render_controller_io_start_timeout_timer();
 
   DEBUG_OUTPUT("config handler set", strlen("config handler set"));

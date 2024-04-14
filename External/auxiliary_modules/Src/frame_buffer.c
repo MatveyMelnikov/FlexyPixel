@@ -15,7 +15,7 @@
 #define PUT_UINT32(data_ptr, num) \
   *(uint32_t*)(data_ptr) = (num)
 
-// Enums ---------------------------------------------------------------------
+// Static variables ----------------------------------------------------------
 
 enum {
   FRAME_BUFFER_SIZE = 896U, // 14 pages - start byte + data (8x8 panel)
@@ -32,8 +32,6 @@ enum {
   CONF_OFFSET = 21U,
   DATA_OFFSET = 32U,
 };
-
-// Static variables ----------------------------------------------------------
 
 static uint8_t frame_buffer[FRAME_BUFFER_SIZE]; // RGB
 static uint16_t page_num = 0;

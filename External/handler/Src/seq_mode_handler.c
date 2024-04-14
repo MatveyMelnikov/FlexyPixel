@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-// #include "stm32f1xx.h"
 
 // Defines -------------------------------------------------------------------
 
@@ -23,6 +22,15 @@
   }
 
 // Static variables ----------------------------------------------------------
+
+enum {
+  FRAME_FIELD_OFFSET = 2U,
+  FRAMES_AMOUNT_FIELD_OFFSET = 2U,
+  FRAMES_AMOUNT_OFFSET = 17U,
+  DELAY_OFFSET = 41U,
+  DATA_OFFSET = 10U,
+  START_CMD_LENGTH = 51U,
+};
 
 static int16_t remaining_frames = 0;
 
@@ -43,12 +51,18 @@ static uint32_t convert_str_to_delay(const uint8_t *const str)
 
 static bool is_seq_cmd_wrong(handler_input *const input)
 {
-  return !CHECK_STR(input->data + 2, "frame", 5);
+  return !CHECK_STR(
+    input->data + FRAME_FIELD_OFFSET, "frame", strlen("frame")
+  );
 }
 
 static bool is_amount_cmd_wrong(handler_input *const input)
 {
-  bool is_field_wrong = !CHECK_STR(input->data + 2, "framesAmount", 12);
+  bool is_field_wrong = !CHECK_STR(
+    input->data + FRAMES_AMOUNT_FIELD_OFFSET,
+    "framesAmount",
+    strlen("framesAmount")
+  );
   return (displays_conf_is_empty() || is_field_wrong);
 }
 
@@ -70,7 +84,7 @@ static void handle_seq_data(handler_input *const input)
       END_HANDLE_WITH_ERROR();
 
     frame_buffer_lock(true);
-    frame_buffer_set(input->data + 10);
+    frame_buffer_set(input->data + DATA_OFFSET);
     frame_buffer_save();
     handler_queue_set_hold(true);
     return;
@@ -99,10 +113,6 @@ static void handle_seq_data(handler_input *const input)
 
 static void handle_frames_amount(handler_input *const input)
 {
-  // Symbols: 23
-  // {"framesAmount":"030"}
-  
-  
   // Symbols: 51
   // {"framesAmount":"030","interframeDelay":"00000000"}
 
@@ -110,11 +120,11 @@ static void handle_frames_amount(handler_input *const input)
   if (is_amount_cmd_wrong(input))
     END_HANDLE_WITH_ERROR();
 
-  uint16_t frames_amount = STR_TO_NUM(input->data + 17);
+  uint16_t frames_amount = STR_TO_NUM(input->data + FRAMES_AMOUNT_OFFSET);
   if (frames_amount > MAX_FRAMES_AMOUNT)
     END_HANDLE_WITH_ERROR();
 
-  uint32_t delay = convert_str_to_delay(input->data + 41);
+  uint32_t delay = convert_str_to_delay(input->data + DELAY_OFFSET);
   if (delay > 86400000U)
     END_HANDLE_WITH_ERROR();
   
@@ -140,7 +150,7 @@ static void set_handlers(handler self, handler_input *const input)
 
   handler_queue_add(handle_frames_amount);
 
-  hc06_read((uint8_t*)input->data, 51);
+  hc06_read((uint8_t*)input->data, START_CMD_LENGTH);
   render_controller_io_start_timeout_timer();
 
   hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));
