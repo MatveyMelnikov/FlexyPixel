@@ -286,6 +286,7 @@ void frame_buffer_reset()
   page_num = 0;
   page_addr = 0;
   loaded_frame = 0;
+  loaded_addr = 0;
   frame_index = 0;
   erased_frame_index = 0;
   lock = false;

@@ -83,7 +83,6 @@ static void handle_seq_data(handler_input *const input)
     if (is_seq_cmd_wrong(input))
       END_HANDLE_WITH_ERROR();
 
-    frame_buffer_lock(true);
     frame_buffer_set(input->data + DATA_OFFSET);
     frame_buffer_save();
     handler_queue_set_hold(true);
@@ -125,11 +124,10 @@ static void handle_frames_amount(handler_input *const input)
     END_HANDLE_WITH_ERROR();
 
   uint32_t delay = convert_str_to_delay(input->data + DELAY_OFFSET);
-  if (delay > 86400000U)
-    END_HANDLE_WITH_ERROR();
   
   frame_buffer_reset();
   
+  frame_buffer_lock(true);
   frame_buffer_set_render_delay(delay);
 
   remaining_frames = frames_amount;
