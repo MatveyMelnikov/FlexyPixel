@@ -50,18 +50,22 @@ static bool lock = false;
 __attribute__((always_inline))
 inline static void convert_pixels_to_data(
   const uint8_t *const pixels,
-  uint16_t frame_index
+  uint16_t frame_index,
+  bool with_correction
 )
 {
+  // The odd numbered line needs to change the byte order in the frame
+  uint8_t correction = (with_correction) ? 3 : 0;
+
   // r and g
-  frame_buffer[frame_index] = (SECOND_PART(pixels[0]) << 4) |
-    SECOND_PART(pixels[1]);
+  frame_buffer[frame_index] = (SECOND_PART(pixels[0 + correction]) << 4) |
+    SECOND_PART(pixels[1 + correction]);
   // b and r
-  frame_buffer[frame_index + 1] = (SECOND_PART(pixels[2]) << 4) |
-    SECOND_PART(pixels[3]);
+  frame_buffer[frame_index + 1] = (SECOND_PART(pixels[2 + correction]) << 4) |
+    SECOND_PART(pixels[3 - correction]);
   // g anf b
-  frame_buffer[frame_index + 2] = (SECOND_PART(pixels[4]) << 4) |
-    SECOND_PART(pixels[5]);
+  frame_buffer[frame_index + 2] = (SECOND_PART(pixels[4 - correction]) << 4) |
+    SECOND_PART(pixels[5 - correction]);
 }
 
 __attribute__((always_inline))
@@ -106,12 +110,39 @@ void frame_buffer_set(const uint8_t *data)
     frame_conf++;
   }
 
-  uint16_t pixels_num = displays_conf_get_pixels_num() * 3;
+  uint16_t frame_offset = 0;
+  uint16_t data_offset = 0;
+  uint16_t display_index = 0;
 
-  for (uint16_t data_index = 0; data_index < pixels_num; data_index += 6)
+  while (true)
   {
-    uint16_t frame_index = DATA_OFFSET + data_index / 2;
-    convert_pixels_to_data(data + data_index, frame_index);
+    uint16_t frame_size = displays_conf_get()[display_index];
+    uint16_t frame_data_size = frame_size * 1.5f;
+    uint16_t frame_data_side =  get_side_size(frame_size) * 1.5f;
+
+    uint16_t frame_index = 0;
+    for (
+      ;
+      frame_index < frame_data_size;
+      frame_index += 3
+    )
+    {
+      uint16_t remainder = frame_index % frame_data_side;
+      bool line_odd = (frame_index / frame_data_side) % 2 == 1;
+      uint16_t offset = (frame_index - remainder) + 
+        (line_odd ? ((frame_data_side - 3) - remainder) : remainder);
+
+      convert_pixels_to_data(
+        data + (uint16_t)(data_offset + 2 * frame_index),
+        frame_offset + DATA_OFFSET + offset,
+        line_odd
+      );
+    }
+
+    data_offset += frame_index * 2;
+    frame_offset += frame_index;
+    if (++display_index >= displays_conf_get_displays_num())
+      break;
   }
 }
 
@@ -234,7 +265,7 @@ void frame_buffer_load_conf()
   status = flash_driver_read(DELAY_OFFSET, (uint8_t*)&delay, sizeof(uint32_t));
   frame_buffer_set_render_delay(delay);
   
-  status = flash_driver_read(
+  status |= flash_driver_read(
     FRAMES_AMOUNT_OFFSET,
     (uint8_t*)&frames_amount,
     sizeof(uint16_t)

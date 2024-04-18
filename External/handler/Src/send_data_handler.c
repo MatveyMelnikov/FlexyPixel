@@ -14,6 +14,7 @@ static void set_handlers(handler self, handler_input *const input)
 
   if (mode == NULL || displays_conf_is_empty())
   {
+    DEBUG_OUTPUT("unconfigured error", strlen("unconfigured error"));
     hc06_write((uint8_t *)UNCONFIGURED_STRING, strlen(UNCONFIGURED_STRING));
     hc06_read(input->data, CMD_LEN);
     return;
