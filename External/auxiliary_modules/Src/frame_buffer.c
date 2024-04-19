@@ -50,21 +50,20 @@ static bool lock = false;
 __attribute__((always_inline))
 inline static void convert_pixels_to_data(
   const uint8_t *const pixels,
-  uint16_t frame_index,
-  bool with_correction
+  uint8_t *const frame,
+  const uint8_t correction
 )
 {
   // The odd numbered line needs to change the byte order in the frame
-  uint8_t correction = (with_correction) ? 3 : 0;
 
   // r and g
-  frame_buffer[frame_index] = (SECOND_PART(pixels[0 + correction]) << 4) |
+  frame[0] = (SECOND_PART(pixels[0 + correction]) << 4) |
     SECOND_PART(pixels[1 + correction]);
   // b and r
-  frame_buffer[frame_index + 1] = (SECOND_PART(pixels[2 + correction]) << 4) |
+  frame[1] = (SECOND_PART(pixels[2 + correction]) << 4) |
     SECOND_PART(pixels[3 - correction]);
   // g anf b
-  frame_buffer[frame_index + 2] = (SECOND_PART(pixels[4 - correction]) << 4) |
+  frame[2] = (SECOND_PART(pixels[4 - correction]) << 4) |
     SECOND_PART(pixels[5 - correction]);
 }
 
@@ -81,6 +80,59 @@ inline static frame_buffer_status clear_sectors_with_pages()
   flash_driver_status status = flash_driver_sector_erase(sector_start);
 
   return status | FRAME_BUFFER_IN_PROGRESS;
+}
+
+static void fill_line(
+  const uint8_t *const data,
+  uint8_t *const frame,
+  const uint16_t side_size,
+  bool is_line_odd
+)
+{
+  // part - 2 pixels in 3 bytes (stores in frame)
+  uint16_t parts_amount = (side_size * 1.5f) / 3;
+
+  uint16_t frame_part_offset = is_line_odd ? (parts_amount - 1) * 3 : 0;
+  int16_t frame_part_delta = is_line_odd ? -3 : 3;
+  uint8_t correction = is_line_odd ? 3 : 0;
+
+  if (frame_part_offset == 0 || frame_part_delta == 3 || correction == 0)
+    __asm("nop");
+
+  for (uint16_t part_index = 0; part_index < parts_amount; part_index++)
+  {
+    convert_pixels_to_data(
+      data + (part_index * 6),
+      frame + frame_part_offset + (part_index * frame_part_delta),
+      correction
+    );
+  }
+}
+
+static void fill_frame(
+  uint8_t const* data,
+  const uint16_t display_size,
+  const uint16_t data_offset,
+  const uint16_t frame_offset
+)
+{
+  uint16_t side_size = get_side_size(display_size);
+  uint16_t frame_line_len = side_size * 1.5f;
+  uint16_t data_line_len = side_size * 3;
+
+  for (
+    uint16_t line_index = 0;
+    line_index < side_size;
+    line_index++
+  )
+  {
+    fill_line(
+      data + (data_offset + line_index * data_line_len),
+      frame_buffer + (frame_offset + line_index * frame_line_len),
+      side_size,
+      line_index % 2 == 1
+    );
+  }
 }
 
 // Implementations -----------------------------------------------------------
@@ -110,39 +162,20 @@ void frame_buffer_set(const uint8_t *data)
     frame_conf++;
   }
 
-  uint16_t frame_offset = 0;
   uint16_t data_offset = 0;
-  uint16_t display_index = 0;
-
-  while (true)
+  uint16_t frame_offset = DATA_OFFSET;
+  for (
+    uint8_t display_index = 0;
+    display_index < displays_conf_get_displays_num();
+    display_index++
+  )
   {
-    uint16_t frame_size = displays_conf_get()[display_index];
-    uint16_t frame_data_size = frame_size * 1.5f;
-    uint16_t frame_data_side =  get_side_size(frame_size) * 1.5f;
+    uint16_t display_size = displays_conf_get()[display_index];
 
-    uint16_t frame_index = 0;
-    for (
-      ;
-      frame_index < frame_data_size;
-      frame_index += 3
-    )
-    {
-      uint16_t remainder = frame_index % frame_data_side;
-      bool line_odd = (frame_index / frame_data_side) % 2 == 1;
-      uint16_t offset = (frame_index - remainder) + 
-        (line_odd ? ((frame_data_side - 3) - remainder) : remainder);
+    fill_frame(data, display_size, data_offset, frame_offset);
 
-      convert_pixels_to_data(
-        data + (uint16_t)(data_offset + 2 * frame_index),
-        frame_offset + DATA_OFFSET + offset,
-        line_odd
-      );
-    }
-
-    data_offset += frame_index * 2;
-    frame_offset += frame_index;
-    if (++display_index >= displays_conf_get_displays_num())
-      break;
+    data_offset += display_size * 3;
+    frame_offset += display_size * 1.5f;
   }
 }
 
