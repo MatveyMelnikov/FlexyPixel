@@ -39,12 +39,12 @@ static bool is_transmit_wrong(handler_input *const input)
   bool is_first_field = !CHECK_STR(
     input->data + PANEL_POS_FIELD_OFFSET,
     "panelPosition",
-    sizeof("panelPosition")
+    strlen("panelPosition")
   );
   bool is_last_field = !CHECK_STR(
     input->data + PIXEL_POS_FIELD_OFFSET,
     "pixelPosition",
-    sizeof("pixelPosition")
+    strlen("pixelPosition")
   );
   return (displays_conf_is_empty() || is_first_field || is_last_field);
 }
@@ -69,15 +69,10 @@ static void handle_pixel_data(handler_input *const input)
   if (!displays_conf_is_panel_configured(panel_position))
     END_HANDLE_WITH_ERROR();
 
-  uint16_t panel_size = get_side_size(displays_conf_get()[panel_position]);
-
   bool is_ok = list_of_changes_add(
-    (pixel_change){
-      .color = color,
-      .panel_position = panel_position,
-      .x = pixel_position % panel_size,
-      .y = pixel_position / panel_size
-    }
+    panel_position,
+    pixel_position,
+    color
   );
   
   send_status(is_ok);

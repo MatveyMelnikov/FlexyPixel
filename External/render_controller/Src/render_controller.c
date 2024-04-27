@@ -17,7 +17,6 @@
 // Static variables ----------------------------------------------------------
 
 static uint8_t io_buffer[INPUT_BUFFER_SIZE];
-//static bool pixels_have_changed = false;
 static led_panels_buffer *front_buffer = NULL;
 static led_panels_buffer *back_buffer = NULL;
 static handler_input handler_args = { 0 };
@@ -45,38 +44,15 @@ static void set_configuration()
     displays_conf_get()
   );
 
-  list_of_changes_destroy();
-  list_of_changes_create(displays_conf_get_pixels_num());
+  list_of_changes_clear();
 
   displays_conf_reset_update_flag();
 }
 
-static void fill_back_buffer()
-{
-  pixel_change change;
-  while (list_of_changes_get(&change))
-  {
-    (void)led_panels_set_pixel(
-      back_buffer,
-      change.panel_position,
-      change.x,
-      change.y,
-      change.color
-    );
-
-    //pixels_have_changed = true;
-  }
-
-  list_of_changes_clear();
-}
-
 static void render()
 {
-  //if (front_buffer->is_locking || !pixels_have_changed)
   if (front_buffer->is_locking || frame_buffer_is_locked())
     return;
-
-  //DEBUG_OUTPUT("render start", strlen("render start"));
 
   // swap buffer
   led_panels_buffer *tmp = front_buffer;
@@ -87,8 +63,8 @@ static void render()
 
   led_panels_copy_data(back_buffer, front_buffer);
   
-  //pixels_have_changed = false;
   frame_buffer_load(back_buffer);
+  list_of_changes_apply_changes(back_buffer);
 }
 
 static void receive_command(void)
@@ -148,6 +124,17 @@ static void process_held_handlers()
     hc06_read(io_buffer, CMD_LEN);
 }
 
+static bool is_time_to_render()
+{
+  if (list_of_changes_is_updated())
+    return true;
+
+  return (
+    (render_controller_io_get_ticks() - captured_ticks) >=
+      frame_buffer_get_render_delay()
+  );
+}
+
 // Implemantations -----------------------------------------------------------
 
 void render_controller_create(
@@ -201,12 +188,8 @@ bool render_controller_process()
   // render
   if (front_buffer == NULL)
     return false;
-  fill_back_buffer();
 
-  if (
-    (render_controller_io_get_ticks() - captured_ticks) < 
-    frame_buffer_get_render_delay()
-  )
+  if (!is_time_to_render())
     return true;
 
   captured_ticks = render_controller_io_get_ticks();

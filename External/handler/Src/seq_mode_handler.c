@@ -105,6 +105,7 @@ static void handle_seq_data(handler_input *const input)
     return;
   }
 
+  list_of_changes_clear();
   frame_buffer_lock(false);
   handler_queue_clear();
   hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));

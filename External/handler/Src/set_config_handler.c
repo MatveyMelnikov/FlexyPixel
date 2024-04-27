@@ -4,6 +4,7 @@
 #include "displays_conf.h"
 #include "handler_queue.h"
 #include "debug_output.h"
+#include "list_of_changes.h"
 #include <stdlib.h>
 
 // Variables -----------------------------------------------------------------
@@ -48,6 +49,7 @@ static void handle_configuration(handler_input *const input)
     }
 
     new_configuration[displays_num] = display_size;
+    list_of_changes_clear();
   }
 
 handle_end:
