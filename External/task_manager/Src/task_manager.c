@@ -13,7 +13,8 @@
 
 enum {
   TASKS_AMOUNT = 5U,
-  REQUEST_LIMIT = 2000U
+  REQUEST_LIMIT = 2000U,
+  OUTPUT_BUFFER_LEN = 30U
 };
 
 // Static variables ----------------------------------------------------------
@@ -42,9 +43,7 @@ static task find_task(const char *task_name)
     if (
       memcmp(current_task->name, task_name, strlen(current_task->name)) == 0
     )
-    {
       return current_task;
-    }
   }
 
   return NULL;
@@ -52,7 +51,7 @@ static task find_task(const char *task_name)
 
 static void handle_output(const task_output *const output)
 {
-  char output_data[30];
+  char output_data[OUTPUT_BUFFER_LEN];
   switch (output->response)
   {
   case RESPONSE_OK:
@@ -83,6 +82,16 @@ static void handle_input(
   uint16_t data_size = (output->request_size > REQUEST_LIMIT) ? 
     REQUEST_LIMIT : output->request_size;
   hc06_read(input->data, data_size);
+}
+
+static void task_manager_skip_task(bool start_immediately)
+{
+  current_index++;
+  subtask_index = 0;
+  is_task_in_progress = start_immediately;
+
+  if (task_manager_is_empty())
+    task_manager_reset();
 }
 
 // Implementations -----------------------------------------------------------
@@ -132,7 +141,11 @@ bool task_manager_run(task_input *const input)
     return true;
 
   task current_task = tasks_queue[current_index];
-  task_output output = task_execute_subtask(current_task, input, subtask_index);
+  task_output output = task_execute_subtask(
+    current_task,
+    input,
+    subtask_index
+  );
 
   DEBUG_OUTPUT_WITH_INSERT(
     "execute task: %s\n",
@@ -141,21 +154,21 @@ bool task_manager_run(task_input *const input)
   handle_input(input, &output);
   handle_output(&output);
 
-  if (output.status == EXECUTION_ERROR)
+  switch (output.status)
   {
+  case EXECUTION_COMPLETED:
+    break;
+  case EXECUTION_ERROR:
     task_manager_reset();
     return false;
-  }
-  if (output.status == EXECUTION_IN_PROGRESS)
-  {
+  case EXECUTION_IN_PROGRESS:
     is_task_in_progress = true;
     return true;
-  }
-  if (output.status == EXECUTION_RESTART)
-  {
+  case EXECUTION_RESTART:
     is_task_in_progress = false;
     return true;
   }
+
   if (output.start_next_task_immediately)
   {
     task_manager_skip_task(true);
@@ -183,14 +196,4 @@ void task_manager_reset()
   subtask_index = 0;
   top_index = 0;
   is_task_in_progress = false;
-}
-
-void task_manager_skip_task(bool start_immediately)
-{
-  current_index++;
-  subtask_index = 0;
-  is_task_in_progress = start_immediately;
-
-  if (task_manager_is_empty())
-    task_manager_reset();
 }

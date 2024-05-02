@@ -68,9 +68,20 @@ static void render()
   list_of_changes_apply_changes(back_buffer);
 }
 
+static bool is_disconnect_caught()
+{
+  if (!CHECK_STR(io_buffer, "+DISC:SUCC", strlen("+DISC:SUCC")))
+    return false;
+
+  return task_manager_set("SAVE");
+}
+
 static void receive_command(void)
 {
   // {"type":"CONF"} ("MODE"/"DATA") - 15 symbols
+
+  if (is_disconnect_caught())
+    return;
 
   if (!CHECK_STR(io_buffer + FIRST_FIELD_OFFSET, "type", strlen("type")))
   {

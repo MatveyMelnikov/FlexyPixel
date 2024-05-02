@@ -28,6 +28,7 @@
 #include "send_data_task.h"
 #include "set_pixel_task.h"
 #include "set_seq_task.h"
+#include "save_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -126,19 +127,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  // static handler modes[5];
-  // uint32_t tick = HAL_GetTick();
-
-  // modes[0] = set_mode_handler_create();
-  // modes[1] = set_config_handler_create();
-  // modes[2] = send_data_handler_create();
-  // modes[3] = pixel_mode_handler_create();
-  // modes[4] = seq_mode_handler_create();
-
-  // render_controller_create(modes, 6);
-
-  static task tasks_list[5];
+  
+  static task tasks_list[6];
   uint32_t tick = HAL_GetTick();
 
   tasks_list[0] = set_mode_task_create();
@@ -146,8 +136,9 @@ int main(void)
   tasks_list[2] = send_data_task_create();
   tasks_list[3] = set_pixel_task_create();
   tasks_list[4] = set_seq_task_create();
+  tasks_list[5] = save_task_create();
 
-  render_controller_create(tasks_list, 5);
+  render_controller_create(tasks_list, 6);
 
   while (1)
   {

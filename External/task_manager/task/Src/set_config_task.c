@@ -93,10 +93,8 @@ task set_config_task_create()
   set_conf_task->name = "CONF";
   set_conf_task->vtable = &interface;
   set_conf_task->ttl = 0;
-  //set_conf_task->subtasks_amount = 2;
 
   interface.destroy = destroy;
-  //interface.subtasks = malloc(sizeof(void*) * set_conf_task->subtasks_amount);
   task_create_subtasks_list(set_conf_task, 2);
   interface.subtasks[0] = set_handler;
   interface.subtasks[1] = handle_configuration;

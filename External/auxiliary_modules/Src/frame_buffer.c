@@ -1,6 +1,7 @@
 #include "frame_buffer.h"
 #include "flash_driver.h"
 #include "displays_conf.h"
+#include "list_of_changes.h"
 #include <memory.h>
 #include <math.h>
 
@@ -142,6 +143,11 @@ void frame_buffer_set_frames_amount(uint16_t amount)
   frames_amount = amount;
 }
 
+uint16_t frame_buffer_get_frames_amount()
+{
+  return frames_amount;
+}
+
 void frame_buffer_set(const uint8_t *data)
 {
   memset(frame_buffer, START_BYTES_VALUE, START_BYTES_AMOUNT);
@@ -209,6 +215,7 @@ frame_buffer_status frame_buffer_save()
     MEMORY_PAGE_SIZE
   );
 
+  // Handle busy and error?
   if (status)
     return FRAME_BUFFER_ERROR;
 
@@ -226,7 +233,7 @@ frame_buffer_status frame_buffer_save()
   return FRAME_BUFFER_IN_PROGRESS;
 }
 
-frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
+frame_buffer_status frame_buffer_internal_load()
 {
   uint16_t frame_size = 0;
 
@@ -260,12 +267,6 @@ frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
   loaded_addr += FRAME_SIZE_IN_MEMORY;
   loaded_frame++;
 
-  memcpy(
-    buffer->pixel_data,
-    frame_buffer + DATA_OFFSET,
-    buffer->pixel_data_size
-  );
-
   return FRAME_BUFFER_OK;
 
 error:
@@ -274,7 +275,54 @@ error:
   return FRAME_BUFFER_ERROR;
 }
 
-void frame_buffer_load_conf()
+frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
+{
+  // uint16_t frame_size = 0;
+
+  // if (lock)
+  //   return FRAME_BUFFER_LOCK;
+  // if (loaded_frame >= frames_amount)
+  // {
+  //   loaded_addr = 0;
+  //   loaded_frame = 0;
+  // }
+
+  // flash_driver_status status = flash_driver_read(
+  //   loaded_addr + SIZE_OF_FRAME_OFFSET,
+  //   (uint8_t*)&frame_size,
+  //   sizeof(uint16_t)
+  // );
+
+  // if (status)
+  //   goto error;
+  // if (frame_size != sizeof(frame_buffer))
+  //   goto error;
+
+  // status = flash_driver_read(
+  //   loaded_addr,
+  //   frame_buffer,
+  //   sizeof(frame_buffer)
+  // );
+  // if (status)
+  //   goto error;
+
+  // loaded_addr += FRAME_SIZE_IN_MEMORY;
+  // loaded_frame++;
+
+  frame_buffer_status status = frame_buffer_internal_load();
+  if (status)
+    return status;
+
+  memcpy(
+    buffer->pixel_data,
+    frame_buffer + DATA_OFFSET,
+    buffer->pixel_data_size
+  );
+
+  return FRAME_BUFFER_OK;
+}
+
+frame_buffer_status frame_buffer_load_conf()
 {
   uint8_t frame_start = 0;
   uint32_t delay = 0;
@@ -285,7 +333,7 @@ void frame_buffer_load_conf()
 
   flash_driver_status status = flash_driver_read(0, &frame_start, 1);
   if (status || frame_start != 0xaa)
-    return;
+    return FRAME_BUFFER_ERROR;
 
   status = flash_driver_read(
     SIZE_OF_FRAME_OFFSET,
@@ -293,7 +341,7 @@ void frame_buffer_load_conf()
     sizeof(uint16_t)
   );
   if (frame_size != sizeof(frame_buffer) || status)
-    return;
+    return FRAME_BUFFER_ERROR;
 
   status = flash_driver_read(DELAY_OFFSET, (uint8_t*)&delay, sizeof(uint32_t));
   frame_buffer_set_render_delay(delay);
@@ -304,7 +352,7 @@ void frame_buffer_load_conf()
     sizeof(uint16_t)
   );
   if (frames_amount == 0 || status)
-    return;
+    return FRAME_BUFFER_ERROR;
 
   // Load configuration of frame
   led_panels_size configuration[CONFIGURATION_SIZE];
@@ -317,7 +365,7 @@ void frame_buffer_load_conf()
     sizeof(loaded_configuration)
   );
   if (status)
-    return;
+    return FRAME_BUFFER_ERROR;
 
   for (; display_index < CONFIGURATION_SIZE; display_index++)
   {
@@ -328,6 +376,8 @@ void frame_buffer_load_conf()
   }
 
   displays_conf_update(configuration, display_index);
+
+  return FRAME_BUFFER_OK;
 }
 
 void frame_buffer_set_render_delay(const uint32_t delay)
@@ -343,6 +393,15 @@ void frame_buffer_set_render_delay(const uint32_t delay)
 uint32_t frame_buffer_get_render_delay()
 {
   return render_delay;
+}
+
+void frame_buffer_apply_changes()
+{
+  //list_of_changes_apply_changes(frame_buffer);
+  list_of_changes_apply_raw_changes(
+    frame_buffer + DATA_OFFSET,
+    sizeof(frame_buffer) - DATA_OFFSET
+  );
 }
 
 void frame_buffer_reset()

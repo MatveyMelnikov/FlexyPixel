@@ -79,6 +79,7 @@ $(TASK)/Src/set_config_task.c \
 $(TASK)/Src/send_data_task.c \
 $(TASK)/Src/set_pixel_task.c \
 $(TASK)/Src/set_seq_task.c \
+$(TASK)/Src/save_task.c \
 $(TASK_MANAGER)/Src/task.c \
 $(TASK_MANAGER)/Src/task_manager.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \

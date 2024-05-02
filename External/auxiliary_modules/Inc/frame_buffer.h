@@ -12,16 +12,19 @@ typedef enum
 } frame_buffer_status;
 
 void frame_buffer_set_frames_amount(uint16_t amount);
+uint16_t frame_buffer_get_frames_amount(void);
 void frame_buffer_set(const uint8_t *data);
 // Disable reading from buffer
 void frame_buffer_lock(bool is_locked);
 bool frame_buffer_is_locked(void);
 bool frame_buffer_is_busy(void);
 frame_buffer_status frame_buffer_save(void);
+frame_buffer_status frame_buffer_internal_load();
 frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer);
-void frame_buffer_load_conf(void);
+frame_buffer_status frame_buffer_load_conf(void);
 void frame_buffer_set_render_delay(const uint32_t delay);
 uint32_t frame_buffer_get_render_delay(void);
+void frame_buffer_apply_changes();
 void frame_buffer_reset(void);
 
 #endif

@@ -15,7 +15,6 @@ task_output task_execute_subtask(
   uint8_t subtask_index
 )
 {
-  //self->vtable->set_handlers(self, input);
   return self->vtable->subtasks[subtask_index](input);
 }
 

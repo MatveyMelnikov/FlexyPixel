@@ -21,6 +21,7 @@ typedef struct {
 static pixel_change changes[CHANGES_SIZE];
 static uint16_t changes_top = 0;
 static bool is_updated = false;
+static bool are_there_any_changes = false;
 static led_panels_size sizes[PANELS_NUM] = {
   LED_PANELS_SIZE_64,
   LED_PANELS_SIZE_64,
@@ -81,6 +82,7 @@ bool list_of_changes_add(
     .color = PACK_COLOR(color)
   };
   is_updated = true;
+  are_there_any_changes = true;
 
   return true;
 }
@@ -106,13 +108,37 @@ void list_of_changes_apply_changes(led_panels_buffer *const target)
   is_updated = false;
 }
 
+void list_of_changes_apply_raw_changes(
+  uint8_t *const target,
+  uint16_t target_len
+)
+{
+  led_panels_buffer projection = (led_panels_buffer) {
+    .is_locking = false,
+    .panels_num = displays_conf_get_displays_num(),
+    .panels_sizes = displays_conf_get(),
+    .pixel_data = target,
+    .pixel_data_size = target_len,
+    .pwm_data = NULL,
+    .transmit_index = 0
+  };
+
+  list_of_changes_apply_changes(&projection);
+}
+
 bool list_of_changes_is_updated()
 {
   return is_updated;
+}
+
+bool list_of_changes_are_there_any_changes()
+{
+  return are_there_any_changes;
 }
 
 void list_of_changes_clear()
 {
   changes_top = 0;
   is_updated = false;
+  are_there_any_changes = false;
 }

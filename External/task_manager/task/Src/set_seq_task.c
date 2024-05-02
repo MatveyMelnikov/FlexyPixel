@@ -89,7 +89,7 @@ static task_output handle_seq_data(task_input *const input)
 
     frame_buffer_set(input->data + DATA_OFFSET);
     frame_buffer_save();
-    //handler_queue_set_hold(true);
+    
     in_progress = true;
     return (task_output) {
       .status = EXECUTION_IN_PROGRESS,
@@ -118,15 +118,10 @@ static task_output handle_seq_data(task_input *const input)
     };
   }
 
-  //handler_queue_set_hold(false);
   in_progress = false;
 
   if (are_frames_left())
   {
-    //handler_queue_skip_remove();
-    //hc06_read((uint8_t*)input->data, displays_conf_get_pixels_num() * 3 + 12);
-    //render_controller_io_start_timeout_timer();
-    //hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
     return (task_output) {
       .status = EXECUTION_RESTART,
       .response = RESPONSE_OK,
@@ -137,8 +132,6 @@ static task_output handle_seq_data(task_input *const input)
 
   list_of_changes_clear();
   frame_buffer_lock(false);
-  //handler_queue_clear();
-  //hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
 
   return (task_output) {
     .status = EXECUTION_COMPLETED,
@@ -153,7 +146,6 @@ static task_output handle_frames_amount(task_input *const input)
   // Symbols: 51
   // {"framesAmount":"030","interframeDelay":"00000000"}
 
-  //render_controller_io_stop_timeout_timer();
   if (is_amount_cmd_wrong(input))
     END_HANDLE_WITH_ERROR();
 
@@ -171,13 +163,6 @@ static task_output handle_frames_amount(task_input *const input)
   remaining_frames = frames_amount;
   frame_buffer_set_frames_amount(frames_amount);
 
-  //handler_queue_add(handle_seq_data);
-
-  //hc06_read((uint8_t*)input->data, displays_conf_get_pixels_num() * 3 + 12);
-  //render_controller_io_start_timeout_timer();
-
-  //hc06_write((uint8_t *)OK_STRING, strlen(OK_STRING));
-
   return (task_output) {
     .status = EXECUTION_COMPLETED,
     .response = RESPONSE_OK,
@@ -188,18 +173,8 @@ static task_output handle_frames_amount(task_input *const input)
 
 static task_output receive_frames_amount(task_input *const input)
 {
-  // handler_queue_clear();
-  // remaining_frames = 0;
-
-  // handler_queue_add(handle_frames_amount);
-
-  // hc06_read((uint8_t*)input->data, START_CMD_LENGTH);
-  // render_controller_io_start_timeout_timer();
-
-  // hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));
-  // DEBUG_OUTPUT("seq mode handler set", strlen("seq mode handler set"));
-
   remaining_frames = 0;
+  in_progress = false;
   
   return (task_output) {
     .status = EXECUTION_COMPLETED,

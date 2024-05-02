@@ -65,10 +65,8 @@ task set_mode_task_create()
   set_mode_task->name = "MODE";
   set_mode_task->vtable = &interface;
   set_mode_task->ttl = 0;
-  //set_mode_task->subtasks_amount = 2;
 
   interface.destroy = destroy;
-  //interface.subtasks = malloc(sizeof(void*) * set_mode_task->subtasks_amount);
   task_create_subtasks_list(set_mode_task, 2);
   interface.subtasks[0] = set_handler;
   interface.subtasks[1] = handle_mode;

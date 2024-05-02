@@ -55,13 +55,11 @@ static bool is_transmit_wrong(task_input *const input)
   return (displays_conf_is_empty() || is_first_field || is_last_field);
 }
 
-// static task_output set_tasks(task_input *const input)
 static task_output handle_pixel_data(task_input *const input)
 {
   // Symbols: 60
   // {"panelPosition":9,"pixelColor":"967","pixelPosition":"000"}
 
-  //render_controller_io_stop_timeout_timer();
   if (is_transmit_wrong(input))
     END_HANDLE_WITH_ERROR();
 
@@ -92,14 +90,6 @@ static task_output handle_pixel_data(task_input *const input)
 
 static task_output set_handlers(task_input *const input)
 {
-  // handler_queue_clear();
-  // handler_queue_add(handle_pixel_data);
-
-  // hc06_read((uint8_t*)input->data, PIXEL_CMD_LENGTH);
-  // render_controller_io_start_timeout_timer();
-
-  // hc06_write((uint8_t*)OK_STRING, strlen(OK_STRING));
-  // DEBUG_OUTPUT("pixel mode handler set", strlen("pixel mode handler set"));
   return (task_output) {
     .status = EXECUTION_COMPLETED,
     .response = RESPONSE_OK,
