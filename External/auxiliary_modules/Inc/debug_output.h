@@ -17,7 +17,18 @@ void debug_output_send(
   char *file
 );
 
+void debug_output_with_insert_send(
+  char *format,
+  char *insertion,
+  uint16_t line,
+  char *file
+);
+
 #define DEBUG_OUTPUT(str, len) \
-  debug_output_send(str, len, __LINE__, __FILE__);
+  debug_output_send((str), (len), (__LINE__), (__FILE__))
+
+#define DEBUG_OUTPUT_WITH_INSERT(format, insertion) \
+  debug_output_with_insert_send((format), (insertion), (__LINE__), (__FILE__))
+
 
 #endif

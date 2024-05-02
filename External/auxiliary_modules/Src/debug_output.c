@@ -36,3 +36,21 @@ void debug_output_send(
     DEBUG_TIMEOUT
   );
 }
+
+void debug_output_with_insert_send(
+  char *format,
+  char *insertion,
+  uint16_t line,
+  char *file
+)
+{
+  sprintf(internal_buffer, format, insertion);
+  sprintf(output_buffer, output_format, file, line, internal_buffer);
+
+  HAL_UART_Transmit(
+    debug_uart,
+    (uint8_t*)output_buffer,
+    strlen(output_buffer),
+    DEBUG_TIMEOUT
+  );
+}

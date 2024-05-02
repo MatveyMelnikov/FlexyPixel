@@ -40,7 +40,8 @@ LED_PANELS_DRIVER = External/led_panels_driver
 FLASH_DRIVER = External/flash_driver
 RENDER_CONTROLLER = External/render_controller
 AUXILIARY_MODULES = External/auxiliary_modules
-HANDLER = External/handler
+TASK_MANAGER = External/task_manager
+TASK = External/task_manager/task
 
 # C sources
 C_SOURCES =  \
@@ -73,14 +74,13 @@ $(AUXILIARY_MODULES)/Src/list_of_changes.c \
 $(AUXILIARY_MODULES)/Src/displays_conf.c \
 $(AUXILIARY_MODULES)/Src/debug_output.c \
 $(AUXILIARY_MODULES)/Src/frame_buffer.c \
-$(HANDLER)/Src/pixel_mode_handler.c \
-$(HANDLER)/Src/seq_mode_handler.c \
-$(HANDLER)/Src/send_data_handler.c \
-$(HANDLER)/Src/set_config_handler.c \
-$(HANDLER)/Src/set_mode_handler.c \
-$(HANDLER)/Src/handler.c \
-$(HANDLER)/Src/handler_queue.c \
-$(HANDLER)/Src/handler_list.c \
+$(TASK)/Src/set_mode_task.c \
+$(TASK)/Src/set_config_task.c \
+$(TASK)/Src/send_data_task.c \
+$(TASK)/Src/set_pixel_task.c \
+$(TASK)/Src/set_seq_task.c \
+$(TASK_MANAGER)/Src/task.c \
+$(TASK_MANAGER)/Src/task_manager.c \
 $(RENDER_CONTROLLER)/Src/render_controller.c \
 $(RENDER_CONTROLLER)/Src/render_controller_io.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
@@ -153,7 +153,8 @@ C_INCLUDES =  \
 -I$(LED_PANELS_DRIVER)/Inc \
 -I$(FLASH_DRIVER)/Inc \
 -I$(AUXILIARY_MODULES)/Inc \
--I$(HANDLER)/Inc \
+-I$(TASK_MANAGER)/Inc \
+-I$(TASK)/Inc \
 -I$(RENDER_CONTROLLER)/Inc
 
 
