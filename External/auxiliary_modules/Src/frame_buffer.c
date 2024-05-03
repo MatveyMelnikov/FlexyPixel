@@ -87,15 +87,15 @@ static void fill_line(
   const uint8_t *const data,
   uint8_t *const frame,
   const uint16_t side_size,
-  bool is_line_odd
+  bool is_line_even
 )
 {
   // part - 2 pixels in 3 bytes (stores in frame)
   uint16_t parts_amount = (side_size * 1.5f) / 3;
 
-  uint16_t frame_part_offset = is_line_odd ? (parts_amount - 1) * 3 : 0;
-  int16_t frame_part_delta = is_line_odd ? -3 : 3;
-  uint8_t correction = is_line_odd ? 3 : 0;
+  uint16_t frame_part_offset = is_line_even ? (parts_amount - 1) * 3 : 0;
+  int16_t frame_part_delta = is_line_even ? -3 : 3;
+  uint8_t correction = is_line_even ? 3 : 0;
 
   if (frame_part_offset == 0 || frame_part_delta == 3 || correction == 0)
     __asm("nop");
@@ -131,7 +131,7 @@ static void fill_frame(
       data + (data_offset + line_index * data_line_len),
       frame_buffer + (frame_offset + line_index * frame_line_len),
       side_size,
-      line_index % 2 == 1
+      line_index % 2 == 0
     );
   }
 }
