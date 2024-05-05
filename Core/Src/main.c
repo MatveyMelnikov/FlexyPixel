@@ -127,7 +127,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  
   static task tasks_list[6];
   uint32_t tick = HAL_GetTick();
 

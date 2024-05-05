@@ -3,11 +3,9 @@
 #include "render_controller_io.h"
 #include "displays_conf.h"
 #include "task_manager.h"
-//#include "handler_list.h"
 #include "task.h"
 #include "hc06_driver.h"
 #include "led_panels_driver.h"
-//#include "handler_queue.h"
 #include "task_input.h"
 #include "list_of_changes.h"
 #include "frame_buffer.h"
@@ -44,8 +42,6 @@ static void set_configuration()
     displays_conf_get_displays_num(),
     displays_conf_get()
   );
-
-  list_of_changes_clear();
 
   displays_conf_reset_update_flag();
 }
@@ -88,39 +84,18 @@ static void receive_command(void)
     hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
     goto end;
   }
-  
-  // const char *handler_name = NULL;
-  // for (uint8_t i = 0; i < HANDLERS_NUM; i++)
-  // {
-  //   handler_name = handler_list_get_name(i);
-  //   if (handler_name == NULL)
-  //     break;
-    
-  //   if (CHECK_STR(
-  //     io_buffer + CMD_TYPE_OFFSET, handler_name, strlen(handler_name)
-  //   ))
-  //   {
-  //     handler_list_set(i, &handler_args);
-  //     return;
-  //   }
-  // }
-  
-//error:
 
   if (task_manager_set((char*)(io_buffer + CMD_TYPE_OFFSET)))
     return;
 
   handler_args.is_input_changed = false;
 
-  //hc06_write((uint8_t *)ERROR_STRING, strlen(ERROR_STRING));
 end:
   hc06_read(io_buffer, CMD_LEN);
 }
 
-// Input is not processed when the handler is held down
 static void process_input()
 {
-  //if (!hc06_is_data_received() || handler_queue_get_hold_flag())
   if (!hc06_is_data_received())
     return;
   DEBUG_OUTPUT((char*)io_buffer, 70);
@@ -130,33 +105,10 @@ static void process_input()
     receive_command();
     return;
   }
-
-  //handler_queue_run(&handler_args);
-
-  // task_manager_run(&handler_args);
-  // if (task_manager_is_empty())
-  //   hc06_read(io_buffer, CMD_LEN);
 }
 
 static void process_tasks()
 {
-  // if (!handler_queue_get_hold_flag())
-  //   return;
-
-  // if (!handler_queue_run(&handler_args))
-  //   handler_queue_set_hold(false);
-
-  // if (handler_queue_is_empty())
-  //   hc06_read(io_buffer, CMD_LEN);
-
-  // if (task_manager_is_empty())
-  // {
-  //   hc06_read(io_buffer, CMD_LEN);
-  //   return;
-  // }
-
-  // task_manager_run(&handler_args);
-
   if (task_manager_is_empty())
     return;
 
@@ -194,7 +146,10 @@ void render_controller_create(
 
   hc06_read(io_buffer, CMD_LEN);
   render_controller_io_create(&front_buffer);
+
   frame_buffer_load_conf();
+  set_configuration();
+  list_of_changes_load();
 
   captured_ticks = render_controller_io_get_ticks();
 }
@@ -210,16 +165,13 @@ void render_controller_destroy(void)
   led_panels_destroy(back_buffer);
   back_buffer = NULL;
 
-  //handler_list_destroy();
   task_manager_reset();
   render_controller_io_destroy();
-  //handler_queue_clear();
 }
 
 bool render_controller_process()
 {
   process_input();
-  //process_held_handlers();
   process_tasks();
 
   // if (render_controller_io_is_timeout())

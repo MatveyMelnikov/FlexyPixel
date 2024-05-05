@@ -277,38 +277,6 @@ error:
 
 frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
 {
-  // uint16_t frame_size = 0;
-
-  // if (lock)
-  //   return FRAME_BUFFER_LOCK;
-  // if (loaded_frame >= frames_amount)
-  // {
-  //   loaded_addr = 0;
-  //   loaded_frame = 0;
-  // }
-
-  // flash_driver_status status = flash_driver_read(
-  //   loaded_addr + SIZE_OF_FRAME_OFFSET,
-  //   (uint8_t*)&frame_size,
-  //   sizeof(uint16_t)
-  // );
-
-  // if (status)
-  //   goto error;
-  // if (frame_size != sizeof(frame_buffer))
-  //   goto error;
-
-  // status = flash_driver_read(
-  //   loaded_addr,
-  //   frame_buffer,
-  //   sizeof(frame_buffer)
-  // );
-  // if (status)
-  //   goto error;
-
-  // loaded_addr += FRAME_SIZE_IN_MEMORY;
-  // loaded_frame++;
-
   frame_buffer_status status = frame_buffer_internal_load();
   if (status)
     return status;
@@ -320,7 +288,9 @@ frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
   );
 
   return FRAME_BUFFER_OK;
-}
+}  uint8_t panel_index;
+  uint8_t pixel_index;
+  uint16_t color; // 0r, gb
 
 frame_buffer_status frame_buffer_load_conf()
 {

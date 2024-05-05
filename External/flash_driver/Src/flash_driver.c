@@ -182,7 +182,7 @@ flash_driver_status flash_driver_sector_erase(uint32_t address)
 
   uint8_t output_data[4] = { FLASH_DRIVER_ERASE_SECTOR_CMD };
   // Get page address
-  uint32_t reversed_addr = flash_driver_reverse_addr(address) & 0xfff000;
+  uint32_t reversed_addr = flash_driver_reverse_addr(address & 0xfff000);
   memcpy(output_data + 1, (uint8_t*)&reversed_addr, 3);
 
   flash_driver_select(true);

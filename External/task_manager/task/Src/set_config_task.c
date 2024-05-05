@@ -55,7 +55,6 @@ static task_output handle_configuration(task_input *const input)
     }
 
     new_configuration[displays_num] = display_size;
-    list_of_changes_clear();
   }
 
   if (success)

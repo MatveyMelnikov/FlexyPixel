@@ -23,10 +23,9 @@ static task_interface_struct interface;
 
 // Static functions ----------------------------------------------------------
 
-// Blocking task
 static task_output handle_save(task_input *const input)
 {
-  if (!list_of_changes_are_there_any_changes())
+  if (!list_of_changes_is_need_to_save())
   {
     return (task_output) {
       .status = EXECUTION_COMPLETED,
@@ -36,30 +35,16 @@ static task_output handle_save(task_input *const input)
     };
   }
 
-
-  frame_buffer_status status;
-
-  frame_buffer_reset();
-  if (frame_buffer_load_conf())
-    END_HANDLE_WITH_ERROR();
-  
-  uint16_t frames_amount = frame_buffer_get_frames_amount();
-  uint16_t current_frame = 0;
-
-  do {
-    status = frame_buffer_internal_load();
-    if (status)
-      END_HANDLE_WITH_ERROR();
-    frame_buffer_apply_changes();
-
-    do {
-      status = frame_buffer_save();
-    //} while (status == FRAME_BUFFER_IN_PROGRESS);
-    } while (status);
-
-    // if (status)
-    //   END_HANDLE_WITH_ERROR();
-  } while (++current_frame < frames_amount);
+  list_of_changes_status status = list_of_changes_save();
+  if (status)
+  {
+    return (task_output) {
+      .status = EXECUTION_IN_PROGRESS,
+      .response = RESPONSE_NONE,
+      .request_size = 0,
+      .start_next_task_immediately = false
+    };
+  }
 
   return (task_output) {
     .status = EXECUTION_COMPLETED,
