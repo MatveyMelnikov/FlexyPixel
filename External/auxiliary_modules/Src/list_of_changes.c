@@ -295,6 +295,6 @@ void list_of_changes_clear()
 {
   changes_top = 0;
   is_updated = false;
-  is_need_to_save = false;
+  is_need_to_save = true;
   RESET_SAVE_PROGRESS();
 }

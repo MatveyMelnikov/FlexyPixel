@@ -178,7 +178,8 @@ static task_output receive_frames_amount(task_input *const input)
   
   return (task_output) {
     .status = EXECUTION_COMPLETED,
-    .response = RESPONSE_NONE,
+    //.response = RESPONSE_NONE,
+    .response = RESPONSE_OK,
     .request_size = START_CMD_LENGTH,
     .start_next_task_immediately = false
   };
