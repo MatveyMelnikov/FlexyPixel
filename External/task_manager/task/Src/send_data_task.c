@@ -30,9 +30,11 @@ static task_output set_tasks(task_input *const input)
 
   bool success = task_manager_set(data_task->name);
 
-  return (task_output) {
+  // If a data_task is set, it responds immediately. Therefore, you
+  // should not send OK from here (There should be no double answer)
+    return (task_output) {
     .status = success ? EXECUTION_COMPLETED : EXECUTION_ERROR,
-    .response = success ? RESPONSE_OK : RESPONSE_ERROR,
+    .response = success ? RESPONSE_NONE : RESPONSE_ERROR,
     .request_size = 0U,
     .start_next_task_immediately = true
   };
