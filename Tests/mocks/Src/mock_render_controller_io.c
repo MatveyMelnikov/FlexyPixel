@@ -3,6 +3,7 @@
 #include "led_panels_driver.h"
 #include "hc06_driver.h"
 #include <stddef.h>
+#include <stdio.h>
 
 // Static variables ----------------------------------------------------------
 

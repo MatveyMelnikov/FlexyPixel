@@ -1,0 +1,8 @@
+name: 'Build check action'
+description: 'Checking if the build was successful'
+outputs:
+  build_result:
+    description: 'Result of build'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

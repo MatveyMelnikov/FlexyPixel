@@ -6,12 +6,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef struct
 {
   int kind;
   const uint8_t * data;
-  uint8_t data_size
+  uint8_t data_size;
 } expectation;
 
 enum
@@ -74,8 +75,8 @@ static void check_kind(const expectation *const current_expectation, int kind)
   if (current_expectation->kind == kind)
     return;
 
-  sprintf(message, report_kind_error, get_expectation_count);
-  FAIL(message);
+  sprintf((char*)message, report_kind_error, get_expectation_count);
+  FAIL((char*)message);
 }
 
 static void check_data(
@@ -98,8 +99,8 @@ static void check_data(
   if (!fail)
     return;
 
-  sprintf(message, report_data_error, get_expectation_count);
-  FAIL(message);
+  sprintf((char*)message, report_data_error, get_expectation_count);
+  FAIL((char*)message);
 }
 
 
@@ -166,12 +167,12 @@ void mock_hc06_io_verify_complete(void)
     return;
     
   sprintf(
-    message,
+    (char*)message,
     report_verify_error,
     set_expectation_count,
     get_expectation_count
   );
-  FAIL(message);
+  FAIL((char*)message);
 }
 
 // Implementations from hc06_io --------------------------------------------
