@@ -1,0 +1,8 @@
+name: 'Run unit tests action'
+description: 'Checking if the unit tests was successful'
+outputs:
+  unit_tests_result:
+    description: 'Result of tests'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
