@@ -1,5 +1,5 @@
 #include "list_of_changes.h"
-#include "flash_driver.h"
+#include "cy15b104q_driver.h"
 #include "displays_conf.h"
 #include "led_panels_driver.h"
 #include <stddef.h>
@@ -11,7 +11,8 @@
 enum {
   CHANGES_SIZE = 576U, // 9 panels (8 x 8)
   PANELS_NUM = 9U,
-  CHANGES_ADDRESS = 0xfff000U, // last sector of last block
+  // CHANGES_ADDRESS = 0xfff000U, // last sector of last block
+  CHANGES_ADDRESS = 0x7EFFFU, // CY15B104Q size - 4096 - 1
   HEADER_OFFSET = 0xffa // sixth byte from the end
 };
 
@@ -74,16 +75,14 @@ inline static bool is_colors_same(
 
 __attribute__((always_inline))
 inline static list_of_changes_status handle_save_operation(
-  const flash_driver_status save_status,
+  const cy15b104q_driver_status save_status,
   const uint8_t progress_stage_index
 )
 {
   switch (save_status)
   {
-    case FLASH_DRIVER_OK:
+    case CY15B104Q_STATUS_OK:
       save_progress[progress_stage_index] = true;
-      return LIST_OF_CHANGES_IN_PROGRESS;
-    case FLASH_DRIVER_BUSY:
       return LIST_OF_CHANGES_IN_PROGRESS;
     default:
       return LIST_OF_CHANGES_ERROR;
@@ -111,9 +110,11 @@ static list_of_changes_status reset_sector()
     return LIST_OF_CHANGES_OK;
 
   return handle_save_operation(
-    flash_driver_sector_erase(CHANGES_ADDRESS),
+    CY15B104Q_STATUS_OK,
     0
   );
+
+  return LIST_OF_CHANGES_IN_PROGRESS;
 }
 
 static list_of_changes_status save_start_bytes()
@@ -123,8 +124,10 @@ static list_of_changes_status save_start_bytes()
 
   uint16_t start_bytes[3] = { 0xaaaa, CHANGES_SIZE, changes_top };
 
-  flash_driver_status status = flash_driver_write(
-    CHANGES_ADDRESS + HEADER_OFFSET,
+  cy15b104q_driver_status status = cy15b104q_driver_write_memory_data(
+    (cy15b104q_driver_address) {
+      .full = CHANGES_ADDRESS + HEADER_OFFSET
+    },
     (uint8_t*)start_bytes,
     sizeof(start_bytes)
   );
@@ -134,26 +137,27 @@ static list_of_changes_status save_start_bytes()
 
 static list_of_changes_status save_changes()
 {
-  uint16_t data_size = sizeof(changes) < FLASH_DRIVER_PAGE_SIZE ? 
-    sizeof(changes) : FLASH_DRIVER_PAGE_SIZE;
 
-  flash_driver_status status = flash_driver_write(
-    CHANGES_ADDRESS + save_addr_offset,
+  uint16_t data_size = sizeof(changes) < 0x100U ? 
+    sizeof(changes) : 0x100U;
+
+  cy15b104q_driver_status status = cy15b104q_driver_write_memory_data(
+    (cy15b104q_driver_address) {
+      .full = CHANGES_ADDRESS + save_addr_offset
+    },
     (uint8_t*)changes + save_addr_offset,
     data_size
   );
 
   switch (status)
   {
-    case FLASH_DRIVER_OK:
-      save_addr_offset += FLASH_DRIVER_PAGE_SIZE;
+    case CY15B104Q_STATUS_OK:
+      save_addr_offset += 0x100U;
 
       if (save_addr_offset > sizeof(changes))
         return LIST_OF_CHANGES_OK;
       else
         return LIST_OF_CHANGES_IN_PROGRESS;
-    case FLASH_DRIVER_BUSY:
-      return LIST_OF_CHANGES_IN_PROGRESS;
     default:
       return LIST_OF_CHANGES_ERROR;
   }
@@ -165,8 +169,10 @@ list_of_changes_status list_of_changes_load()
 {
   uint16_t header[3];
 
-  flash_driver_status status = flash_driver_read(
-    CHANGES_ADDRESS + HEADER_OFFSET,
+  cy15b104q_driver_status status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = CHANGES_ADDRESS + HEADER_OFFSET
+    },
     (uint8_t*)header,
     sizeof(header)
   );
@@ -174,9 +180,10 @@ list_of_changes_status list_of_changes_load()
     return LIST_OF_CHANGES_ERROR;
 
   changes_top = header[2];
-
-  status = flash_driver_read(
-    CHANGES_ADDRESS,
+  status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = CHANGES_ADDRESS
+    },
     (uint8_t*)&changes,
     sizeof(changes)
   );
@@ -194,6 +201,8 @@ list_of_changes_status list_of_changes_load()
 */
 list_of_changes_status list_of_changes_save()
 {
+  cy15b104q_driver_write_enable();
+
   list_of_changes_status status = reset_sector();
   if (status)
     return status;

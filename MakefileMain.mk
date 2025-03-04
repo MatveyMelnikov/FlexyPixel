@@ -2,18 +2,18 @@ MODULES_DIR = External
 
 HC06_DRIVER = $(MODULES_DIR)/hc06_driver
 LED_PANELS_DRIVER = $(MODULES_DIR)/led_panels_driver
-FLASH_DRIVER = $(MODULES_DIR)/flash_driver
+CY15B104Q_DRIVER = $(MODULES_DIR)/CY15B104Q_Driver
 RENDER_CONTROLLER = $(MODULES_DIR)/render_controller
 AUXILIARY_MODULES = $(MODULES_DIR)/auxiliary_modules
 TASK_MANAGER = $(MODULES_DIR)/task_manager
 TASK = $(MODULES_DIR)/task_manager/task
 
-TESTS = N
+TESTS = Y
 
 C_INCLUDES = \
 -I$(HC06_DRIVER)/Inc \
 -I$(LED_PANELS_DRIVER)/Inc \
--I$(FLASH_DRIVER)/Inc \
+-I$(CY15B104Q_DRIVER)/Inc \
 -I$(AUXILIARY_MODULES)/Inc \
 -I$(TASK_MANAGER)/Inc \
 -I$(TASK)/Inc \
@@ -22,7 +22,7 @@ C_INCLUDES = \
 C_SOURCES = \
 $(HC06_DRIVER)/Src/hc06_driver.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_driver.c \
-$(FLASH_DRIVER)/Src/flash_driver.c \
+$(CY15B104Q_DRIVER)/Src/cy15b104q_driver.c \
 $(AUXILIARY_MODULES)/Src/list_of_changes.c \
 $(AUXILIARY_MODULES)/Src/displays_conf.c \
 $(AUXILIARY_MODULES)/Src/frame_buffer.c \
@@ -44,7 +44,6 @@ C_SOURCES += \
 Core/Src/main.c \
 $(HC06_DRIVER)/Src/hc06_io.c \
 $(HC06_DRIVER)/Src/hc06_time.c \
-$(FLASH_DRIVER)/Src/flash_driver_io.c \
 $(LED_PANELS_DRIVER)/Src/led_panels_io.c \
 $(RENDER_CONTROLLER)/Src/render_controller_io.c \
 $(AUXILIARY_MODULES)/Src/debug_output.c

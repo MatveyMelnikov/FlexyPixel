@@ -7,7 +7,6 @@ UNITY_DIR = $(MODULES_DIR)/Unity-2.5.2
 
 FOR_TARGET = N
 
-HOST_TEST_FLASH_DRIVER_DIR = $(HOST_TESTS)/flash_driver
 HOST_TEST_HC06_DRIVER_DIR = $(HOST_TESTS)/hc06_driver
 HOST_TEST_LED_PANELS_DRIVER_DIR = $(HOST_TESTS)/led_panels_driver
 HOST_TEST_RENDER_CONTROLLER_DIR = $(HOST_TESTS)/render_controller
@@ -33,13 +32,10 @@ include MakefileTarget.mk
 else
 C_SOURCES += \
 $(TESTS_DIR)/host_tests.c \
-$(HOST_TEST_FLASH_DRIVER_DIR)/flash_driver_test_runner.c \
-$(HOST_TEST_FLASH_DRIVER_DIR)/flash_driver_test.c \
 $(HOST_TEST_HC06_DRIVER_DIR)/hc06_test_runner.c \
 $(HOST_TEST_HC06_DRIVER_DIR)/hc06_test.c \
 $(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test_runner.c \
 $(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test.c \
-$(MOCKS_DIR)/Src/mock_flash_driver_io.c \
 $(MOCKS_DIR)/Src/mock_hc06_io.c \
 $(MOCKS_DIR)/Src/mock_render_controller_io.c \
 $(FAKES_DIR)/Src/fake_debug_output.c \
