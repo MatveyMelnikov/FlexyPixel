@@ -29,6 +29,8 @@
 #include "set_pixel_task.h"
 #include "set_seq_task.h"
 #include "save_task.h"
+#include "cy15b104q_driver.h"
+#include "list_of_changes.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,7 +77,17 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
-
+static cy15b104q_driver_status cy15b104q_transmit(
+  const uint8_t *const data,
+  const uint16_t size,
+  const uint32_t timeout
+);
+static cy15b104q_driver_status cy15b104q_receive(
+  uint8_t *const data,
+  const uint16_t size,
+  const uint32_t timeout
+);
+static void cy15b104q_write_cs_pin(const bool is_set);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -84,7 +96,6 @@ TIM_HandleTypeDef *led_panels_tim = &htim2;
 UART_HandleTypeDef *hc06_uart = &huart2;
 TIM_HandleTypeDef *render_controller_tim = &htim3;
 UART_HandleTypeDef *debug_uart = &huart1;
-SPI_HandleTypeDef *flash_driver_spi = &hspi1;
 /* USER CODE END 0 */
 
 /**
@@ -136,6 +147,22 @@ int main(void)
   tasks_list[3] = set_pixel_task_create();
   tasks_list[4] = set_seq_task_create();
   tasks_list[5] = save_task_create();
+
+  cy15b104q_driver_init_module(
+    (cy15b104q_driver_io_struct) {
+      .transmit = cy15b104q_transmit,
+      .receive = cy15b104q_receive,
+      .write_cs_pin = cy15b104q_write_cs_pin,
+      .delay = HAL_Delay
+    }
+  );
+
+  cy15b104q_driver_status status = cy15b104q_driver_power_up();
+  status |= cy15b104q_driver_write_enable();
+  status |= cy15b104q_driver_write_status_register(false, false, false);
+  status |= cy15b104q_driver_check_link();
+  if (status)
+    Error_Handler();
 
   render_controller_create(tasks_list, 6);
 
@@ -426,13 +453,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Heart_Beat_GPIO_Port, Heart_Beat_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Flash_CS_GPIO_Port, Flash_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(CY15B104Q_NCS_GPIO_Port, CY15B104Q_NCS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : Heart_Beat_Pin */
   GPIO_InitStruct.Pin = Heart_Beat_Pin;
@@ -441,12 +467,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(Heart_Beat_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Flash_CS_Pin */
-  GPIO_InitStruct.Pin = Flash_CS_Pin;
+  /*Configure GPIO pin : CY15B104Q_NCS_Pin */
+  GPIO_InitStruct.Pin = CY15B104Q_NCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(Flash_CS_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(CY15B104Q_NCS_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -474,6 +500,43 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim->Instance == TIM3)
     render_controller_io_timeout_timer_complete();
+}
+
+static cy15b104q_driver_status cy15b104q_transmit(
+  const uint8_t *const data,
+  const uint16_t size,
+  const uint32_t timeout
+)
+{
+  return (cy15b104q_driver_status)HAL_SPI_Transmit(
+    &hspi1,
+    (uint8_t*)data,
+    size,
+    timeout
+  );
+}
+
+static cy15b104q_driver_status cy15b104q_receive(
+  uint8_t *const data,
+  const uint16_t size,
+  const uint32_t timeout
+)
+{
+  return (cy15b104q_driver_status)HAL_SPI_Receive(
+    &hspi1,
+    data,
+    size,
+    timeout
+  );
+}
+
+static void cy15b104q_write_cs_pin(const bool is_set)
+{
+  HAL_GPIO_WritePin(
+    CY15B104Q_NCS_GPIO_Port,
+    CY15B104Q_NCS_Pin,
+    is_set ? GPIO_PIN_SET : GPIO_PIN_RESET
+  );
 }
 
 /* USER CODE END 4 */

@@ -1,5 +1,5 @@
 #include "frame_buffer.h"
-#include "flash_driver.h"
+#include "cy15b104q_driver.h"
 #include "displays_conf.h"
 #include "list_of_changes.h"
 #include <memory.h>
@@ -78,9 +78,10 @@ inline static frame_buffer_status clear_sectors_with_pages()
   if (sector_start % MEMORY_SECTOR_SIZE != 0)
     return FRAME_BUFFER_IN_PROGRESS;
 
-  flash_driver_status status = flash_driver_sector_erase(sector_start);
+  // flash_driver_status status = flash_driver_sector_erase(sector_start);
 
-  return status | FRAME_BUFFER_IN_PROGRESS;
+  // return status | FRAME_BUFFER_IN_PROGRESS;
+  return FRAME_BUFFER_IN_PROGRESS;
 }
 
 static void fill_line(
@@ -197,7 +198,8 @@ bool frame_buffer_is_locked()
 
 bool frame_buffer_is_busy()
 {
-  return (flash_driver_is_busy() == FLASH_DRIVER_BUSY);
+  // return (flash_driver_is_busy() == FLASH_DRIVER_BUSY);
+  return false;
 }
 
 frame_buffer_status frame_buffer_save()
@@ -209,8 +211,12 @@ frame_buffer_status frame_buffer_save()
     return erase_status;
 
   uint16_t frame_offset = MEMORY_PAGE_SIZE * page_num;
-  flash_driver_status status = flash_driver_write(
-    write_address,
+
+  cy15b104q_driver_write_enable();
+  cy15b104q_driver_status status = cy15b104q_driver_write_memory_data(
+    (cy15b104q_driver_address) {
+      .full = write_address
+    },
     frame_buffer + frame_offset,
     MEMORY_PAGE_SIZE
   );
@@ -245,8 +251,10 @@ frame_buffer_status frame_buffer_internal_load()
     loaded_frame = 0;
   }
 
-  flash_driver_status status = flash_driver_read(
-    loaded_addr + SIZE_OF_FRAME_OFFSET,
+  cy15b104q_driver_status status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = loaded_addr + SIZE_OF_FRAME_OFFSET
+    },
     (uint8_t*)&frame_size,
     sizeof(uint16_t)
   );
@@ -255,9 +263,11 @@ frame_buffer_status frame_buffer_internal_load()
     goto error;
   if (frame_size != sizeof(frame_buffer))
     goto error;
-
-  status = flash_driver_read(
-    loaded_addr,
+  
+  status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = loaded_addr
+    },
     frame_buffer,
     sizeof(frame_buffer)
   );
@@ -288,9 +298,7 @@ frame_buffer_status frame_buffer_load(led_panels_buffer *const buffer)
   );
 
   return FRAME_BUFFER_OK;
-}  uint8_t panel_index;
-  uint8_t pixel_index;
-  uint16_t color; // 0r, gb
+}  
 
 frame_buffer_status frame_buffer_load_conf()
 {
@@ -301,23 +309,39 @@ frame_buffer_status frame_buffer_load_conf()
   frame_buffer_reset();
   displays_conf_clear();
 
-  flash_driver_status status = flash_driver_read(0, &frame_start, 1);
+  cy15b104q_driver_status status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = 0U
+    },
+    &frame_start,
+    1U
+  );
   if (status || frame_start != 0xaa)
     return FRAME_BUFFER_ERROR;
 
-  status = flash_driver_read(
-    SIZE_OF_FRAME_OFFSET,
+  status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = SIZE_OF_FRAME_OFFSET
+    },
     (uint8_t*)&frame_size,
     sizeof(uint16_t)
   );
   if (frame_size != sizeof(frame_buffer) || status)
     return FRAME_BUFFER_ERROR;
 
-  status = flash_driver_read(DELAY_OFFSET, (uint8_t*)&delay, sizeof(uint32_t));
+  status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = DELAY_OFFSET
+    },
+    (uint8_t*)&delay,
+    sizeof(uint32_t)
+  );
   frame_buffer_set_render_delay(delay);
-  
-  status |= flash_driver_read(
-    FRAMES_AMOUNT_OFFSET,
+
+  status |= cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = FRAMES_AMOUNT_OFFSET
+    },
     (uint8_t*)&frames_amount,
     sizeof(uint16_t)
   );
@@ -329,8 +353,10 @@ frame_buffer_status frame_buffer_load_conf()
   uint8_t loaded_configuration[CONFIGURATION_SIZE] = { 0 };
   uint8_t display_index = 0;
 
-  status = flash_driver_read(
-    CONF_OFFSET,
+  status = cy15b104q_driver_read_memory_data(
+    (cy15b104q_driver_address) {
+      .full = CONF_OFFSET
+    },
     loaded_configuration,
     sizeof(loaded_configuration)
   );
