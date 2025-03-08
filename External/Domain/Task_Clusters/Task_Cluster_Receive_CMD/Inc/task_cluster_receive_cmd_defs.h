@@ -1,0 +1,26 @@
+#ifndef TASK_CLUSTER_RECEIVE_CMD_DEFS_H
+#define TASK_CLUSTER_RECEIVE_CMD_DEFS_H
+
+#include "task.h"
+
+#define TASK_CLUSTER_RECEIVE_NAME "request_cmd"
+#define TASK_CLUSTER_RECEIVE_DISCONNECT_CMD "DISC"
+
+typedef struct
+{
+  // name, input
+  void (*start_cluster)(char *const, task_data *const);
+} task_cluster_receive_cmd_io;
+
+enum
+{
+  TASK_CLUSTER_RECEIVE_SMD_TTL = 100U,
+  TASK_CLUSTER_RECEIVE_SMD_CMD_LEN = 15U,
+  TASK_CLUSTER_RECEIVE_INPUT_BUFFER_SIZE = 256U,
+  TASK_CLUSTER_RECEIVE_FIRST_FIELD_OFFSET = 2U,
+  TASK_CLUSTER_RECEIVE_CMD_TYPE_OFFSET = 9U,
+  TASK_CLUSTER_RECEIVE_CMD_TYPE_LEN = 4U,
+  TASK_CLUSTER_RECEIVE_CMD_DISCONNECT_OFFSET = 1U,
+};
+
+#endif

@@ -34,13 +34,16 @@ C_SOURCES += \
 $(TESTS_DIR)/host_tests.c \
 $(HOST_TEST_HC06_DRIVER_DIR)/hc06_test_runner.c \
 $(HOST_TEST_HC06_DRIVER_DIR)/hc06_test.c \
+$(MOCKS_DIR)/Src/mock.c \
+$(MOCKS_DIR)/Src/mock_delay.c \
+$(MOCKS_DIR)/Src/mock_uart.c \
 $(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test_runner.c \
-$(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test.c \
-$(MOCKS_DIR)/Src/mock_hc06_io.c \
-$(MOCKS_DIR)/Src/mock_render_controller_io.c \
-$(FAKES_DIR)/Src/fake_debug_output.c \
-$(FAKES_DIR)/Src/fake_hc06_time.c \
-$(FAKES_DIR)/Src/fake_led_panels_io.c
+$(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test.c
+# $(MOCKS_DIR)/Src/mock_render_controller_io.c \
+# $(FAKES_DIR)/Src/fake_debug_output.c \
+# $(FAKES_DIR)/Src/fake_hc06_time.c \
+# $(FAKES_DIR)/Src/fake_led_panels_io.c
+# $(MOCKS_DIR)/Src/mock_hc06_io.c \
 # $(HOST_TEST_RENDER_CONTROLLER_DIR)/render_controller_test_runner.c \
 # $(HOST_TEST_RENDER_CONTROLLER_DIR)/render_controller_test.c \
 
