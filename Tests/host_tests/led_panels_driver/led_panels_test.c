@@ -1,8 +1,3 @@
-/*
-Due to the use of bit banding to speed up interrupt processing,
-only pixel data is tested here. The sending itself is tested in target tests
-*/
-
 #include "unity_fixture.h"
 #include "led_panels_driver.h"
 #include <string.h>

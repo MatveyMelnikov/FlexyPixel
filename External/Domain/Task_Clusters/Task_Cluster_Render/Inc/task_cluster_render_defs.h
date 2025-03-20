@@ -1,0 +1,6 @@
+#ifndef TASK_CLUSTER_RENDER_DEFS_H
+#define TASK_CLUSTER_RENDER_DEFS_H
+
+#define TASK_CLUSTER_RENDER_NAME "render"
+
+#endif

@@ -21,24 +21,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "render_controller.h"
-#include "task.h"
-#include "set_mode_task.h"
-#include "set_config_task.h"
-#include "send_data_task.h"
-#include "set_pixel_task.h"
-#include "set_seq_task.h"
-#include "save_task.h"
+#include "task_manager.h"
+#include "builder_general.h"
 #include "cy15b104q_driver.h"
-#include "list_of_changes.h"
+#include "displays_config_storage.h"
+#include "single_changes_storage.h"
+#include "builder_task_manager.h"
+#include "frames_storage.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
-enum {
-  HEART_BEAT_DELAY = 500U
-};
 
 /* USER CODE END PTD */
 
@@ -77,24 +70,11 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
-static cy15b104q_driver_status cy15b104q_transmit(
-  const uint8_t *const data,
-  const uint16_t size,
-  const uint32_t timeout
-);
-static cy15b104q_driver_status cy15b104q_receive(
-  uint8_t *const data,
-  const uint16_t size,
-  const uint32_t timeout
-);
-static void cy15b104q_write_cs_pin(const bool is_set);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-TIM_HandleTypeDef *led_panels_tim = &htim2;
-UART_HandleTypeDef *hc06_uart = &huart2;
-TIM_HandleTypeDef *render_controller_tim = &htim3;
 UART_HandleTypeDef *debug_uart = &huart1;
 /* USER CODE END 0 */
 
@@ -138,46 +118,31 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  static task tasks_list[6];
-  uint32_t tick = HAL_GetTick();
+  displays_config_storage_create();
+  single_changes_storage_create();
+  frames_storage_create();
 
-  tasks_list[0] = set_mode_task_create();
-  tasks_list[1] = set_config_task_create();
-  tasks_list[2] = send_data_task_create();
-  tasks_list[3] = set_pixel_task_create();
-  tasks_list[4] = set_seq_task_create();
-  tasks_list[5] = save_task_create();
+  builder_general_build(&huart2, &hspi1, &htim2);
 
-  cy15b104q_driver_init_module(
-    (cy15b104q_driver_io_struct) {
-      .transmit = cy15b104q_transmit,
-      .receive = cy15b104q_receive,
-      .write_cs_pin = cy15b104q_write_cs_pin,
-      .delay = HAL_Delay
-    }
-  );
-
-  cy15b104q_driver_status status = cy15b104q_driver_power_up();
-  status |= cy15b104q_driver_write_enable();
-  status |= cy15b104q_driver_write_status_register(false, false, false);
-  status |= cy15b104q_driver_check_link();
-  if (status)
+  cy15b104q_driver_power_up();
+  cy15b104q_driver_status mem_status = cy15b104q_driver_check_link();
+  if (mem_status != CY15B104Q_STATUS_OK)
     Error_Handler();
 
-  render_controller_create(tasks_list, 6);
+  (void)cy15b104q_driver_write_enable();
+  (void)cy15b104q_driver_write_status_register(false, false, false);
+
+  if (builder_task_manager_build())
+    Error_Handler();
+
+  task_manager_start_cluster("startup", NULL);
 
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    render_controller_process();
-
-    if ((HAL_GetTick() - tick) < HEART_BEAT_DELAY)
-      continue;
-
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    tick = HAL_GetTick();
+    task_manager_execute();
   }
   /* USER CODE END 3 */
 }
@@ -479,65 +444,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  //hc06_receive_complete();
-  render_controller_io_receive_complete();
-}
-
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
-{
-  render_controller_io_send_complete();
-}
-
-void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
-{
-  render_controller_io_half_send_complete();
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM3)
-    render_controller_io_timeout_timer_complete();
-}
-
-static cy15b104q_driver_status cy15b104q_transmit(
-  const uint8_t *const data,
-  const uint16_t size,
-  const uint32_t timeout
-)
-{
-  return (cy15b104q_driver_status)HAL_SPI_Transmit(
-    &hspi1,
-    (uint8_t*)data,
-    size,
-    timeout
-  );
-}
-
-static cy15b104q_driver_status cy15b104q_receive(
-  uint8_t *const data,
-  const uint16_t size,
-  const uint32_t timeout
-)
-{
-  return (cy15b104q_driver_status)HAL_SPI_Receive(
-    &hspi1,
-    data,
-    size,
-    timeout
-  );
-}
-
-static void cy15b104q_write_cs_pin(const bool is_set)
-{
-  HAL_GPIO_WritePin(
-    CY15B104Q_NCS_GPIO_Port,
-    CY15B104Q_NCS_Pin,
-    is_set ? GPIO_PIN_SET : GPIO_PIN_RESET
-  );
-}
 
 /* USER CODE END 4 */
 
