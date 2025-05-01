@@ -4,9 +4,10 @@
 enum
 {
 	HC06_TIMEOUT = 500U,
-  HC06_AT_DELAY = 20U,
+  HC06_AT_DELAY = 100U,
   HC06_BUFFER_SIZE = 40U,
   HC06_MAX_PIN_CODE = 9999U, // 4 digits
+  HC06_MAX_NAME_LEN = 20U
 };
 
 typedef enum

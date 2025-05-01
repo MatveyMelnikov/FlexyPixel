@@ -3,6 +3,7 @@
 #include "builder_cy15b104q_driver.h"
 #include "builder_led_panels_driver.h"
 #include "builder_data_transmitter_port.h"
+#include "builder_debug_handler.h"
 #include <stdbool.h>
 
 // Static variables ----------------------------------------------------------
@@ -21,6 +22,7 @@ void builder_general_build(
   builder_cy15b104q_driver_build(mem_spi);
   builder_led_panels_driver_build(led_panels_tim);
   builder_data_transmitter_port_build();
+  builder_debug_handler_build();
 }
 
 void builder_general_destroy()

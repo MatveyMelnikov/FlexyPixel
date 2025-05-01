@@ -34,6 +34,7 @@ RENDER_CONTROLLER = $(DOMAIN)/Render_Controller
 MESSAGE_HANDLER = $(DOMAIN)/Message_Handler
 MODE_REPO = $(DOMAIN)/Mode_Repo
 PACKED_PIXEL_DATA = $(DOMAIN)/Packed_Pixel_Data
+DEBUG_HANDLER = $(DOMAIN)/Debug_Handler
 
 DATA_TRANSMITTER_PORT = $(PORTS)/Data_Transmitter_Port
 
@@ -49,6 +50,7 @@ BUILDER_CY15B104Q_DRIVER = $(BUILDERS)/Builder_CY15B104Q_Driver
 BUILDER_LED_PANELS_DRIVER = $(BUILDERS)/Builder_Led_Panels_Driver
 BUILDER_DATA_TRANSMITTER_PORT = $(BUILDERS)/Builder_Data_Transmitter_Port
 BUILDER_TASK_MANAGER = $(BUILDERS)/Builder_Task_Manager
+BUILDER_DEBUG_HANDLER = $(BUILDERS)/Builder_Debug_Handler
 BUILDER_GENERAL = $(BUILDERS)/Builder_General
 
 TESTS = N
@@ -85,6 +87,7 @@ C_INCLUDES = \
 -I$(MESSAGE_HANDLER)/Inc \
 -I$(MODE_REPO)/Inc \
 -I$(PACKED_PIXEL_DATA)/Inc \
+-I$(DEBUG_HANDLER)/Inc \
 -I$(DATA_TRANSMITTER_PORT)/Inc \
 -I$(HC06_DRIVER)/Inc \
 -I$(CY15B104Q_DRIVER)/Inc \
@@ -134,6 +137,7 @@ $(RENDER_CONTROLLER)/Src/render_controller.c \
 $(MESSAGE_HANDLER)/Src/message_handler.c \
 $(MODE_REPO)/Src/mode_repo.c \
 $(PACKED_PIXEL_DATA)/Src/packed_pixel_data.c \
+$(DEBUG_HANDLER)/Src/debug_handler.c \
 $(DATA_TRANSMITTER_PORT)/Src/data_transmitter_port.c \
 $(HC06_DRIVER)/Src/hc06_driver.c \
 $(CY15B104Q_DRIVER)/Src/cy15b104q_driver.c \
@@ -160,6 +164,7 @@ C_INCLUDES += \
 -I$(BUILDER_LED_PANELS_DRIVER)/Inc \
 -I$(BUILDER_DATA_TRANSMITTER_PORT)/Inc \
 -I$(BUILDER_TASK_MANAGER)/Inc \
+-I$(BUILDER_DEBUG_HANDLER)/Inc \
 -I$(BUILDER_GENERAL)/Inc
 
 C_SOURCES += \
@@ -169,6 +174,7 @@ $(BUILDER_CY15B104Q_DRIVER)/Src/builder_cy15b104q_driver.c \
 $(BUILDER_LED_PANELS_DRIVER)/Src/builder_led_panels_driver.c \
 $(BUILDER_DATA_TRANSMITTER_PORT)/Src/builder_data_transmitter_port.c \
 $(BUILDER_TASK_MANAGER)/Src/builder_task_manager.c \
+$(BUILDER_DEBUG_HANDLER)/Src/builder_debug_handler.c \
 $(BUILDER_GENERAL)/Src/builder_general.c
 
 

@@ -59,8 +59,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Heart_Beat_Pin GPIO_PIN_13
-#define Heart_Beat_GPIO_Port GPIOC
+#define HEART_BEAT_Pin GPIO_PIN_13
+#define HEART_BEAT_GPIO_Port GPIOC
+#define USB_NRST_Pin GPIO_PIN_14
+#define USB_NRST_GPIO_Port GPIOC
 #define PANELS_OUTPUT_Pin GPIO_PIN_0
 #define PANELS_OUTPUT_GPIO_Port GPIOA
 #define HC06_TX_Pin GPIO_PIN_2
@@ -75,10 +77,6 @@ void Error_Handler(void);
 #define CY15B104Q_MISO_GPIO_Port GPIOA
 #define CY15B104Q_MOSI_Pin GPIO_PIN_7
 #define CY15B104Q_MOSI_GPIO_Port GPIOA
-#define USB_TX_Pin GPIO_PIN_9
-#define USB_TX_GPIO_Port GPIOA
-#define USB_RX_Pin GPIO_PIN_10
-#define USB_RX_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
