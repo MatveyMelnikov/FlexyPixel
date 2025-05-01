@@ -6,12 +6,12 @@
 
 // Static variables ----------------------------------------------------------
 
-static char *ok_response = "OK\r\n";
+static char *ok_response = "OK";
 static uint32_t init_speed = 1200U;
 static uint32_t normal_speed = 9600U;
-static uint32_t highest_speed = 460800U;
-static uint32_t at_delay = 20U;
-static char *test_cmd = "AT\r\n";
+static uint32_t highest_speed = 115200U;
+static uint32_t at_delay = 100U;
+static char *test_cmd = "AT";
 
 // Static functions ----------------------------------------------------------
 
@@ -38,7 +38,7 @@ static hc06_status hc06_io_write(
   const uint16_t data_size
 )
 {
-  return (hc06_status)mock_uart_transmit(data, data_size);
+  return (hc06_status)mock_uart_transmit((uint8_t *const)data, data_size);
 }
 
 static hc06_status hc06_io_non_blocking_read(
@@ -65,13 +65,19 @@ static void expect_transmit_receive_cmd(
   mock_delay_expect_delay(&at_delay);
 }
 
+static void expect_check_link()
+{
+  expect_transmit_receive_cmd(test_cmd, ok_response);
+  expect_transmit_receive_cmd(test_cmd, ok_response);
+}
+
 static void expect_module_init()
 {
-  char *set_baudrate_cmd = "AT+UART=9600,0,0\r\n";
+  char *set_baudrate_cmd = "AT+BAUD4";
 
   // Determine baudrate
   mock_uart_expect_set_baudrate(&init_speed);
-  expect_transmit_receive_cmd(test_cmd, ok_response);
+  expect_check_link();
 
   // Set baudrate
   expect_transmit_receive_cmd(set_baudrate_cmd, ok_response);
@@ -85,7 +91,7 @@ TEST_GROUP(hc06_driver);
 TEST_SETUP(hc06_driver)
 {
   mock_uart_create(20U);
-  mock_delay_create(5U);
+  mock_delay_create(10U);
 
   expect_module_init();
   hc06_create(
@@ -116,10 +122,11 @@ TEST(hc06_driver, driver_create_succes)
 // (Guangzhou HC IT HC-06 product datasheet pg. 16).
 TEST(hc06_driver, check_link_success)
 {
-  char* output_data = "AT\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT";
+  char* input_data = "OK";
 
-  expect_transmit_receive_cmd(output_data, input_data);
+  // expect_transmit_receive_cmd(output_data, input_data);
+  expect_check_link();
 
   hc06_status status = hc06_check_link();
 
@@ -128,12 +135,12 @@ TEST(hc06_driver, check_link_success)
 
 TEST(hc06_driver, set_baud_rate_1200_success)
 {
-  char* output_data = "AT+UART=1200,0,0\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+BAUD1";
+  char* input_data = "OK";
 
   // Determine baudrate
   mock_uart_expect_set_baudrate(&init_speed);
-  expect_transmit_receive_cmd(test_cmd, ok_response);
+  expect_check_link();
 
   // Set baudrate
   expect_transmit_receive_cmd(output_data, input_data);
@@ -146,12 +153,12 @@ TEST(hc06_driver, set_baud_rate_1200_success)
 
 TEST(hc06_driver, set_baud_rate_9600_success)
 {
-  char* output_data = "AT+UART=9600,0,0\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+BAUD4";
+  char* input_data = "OK";
 
   // Determine baudrate
   mock_uart_expect_set_baudrate(&init_speed);
-  expect_transmit_receive_cmd(test_cmd, ok_response);
+  expect_check_link();
 
   // Set baudrate
   expect_transmit_receive_cmd(output_data, input_data);
@@ -162,20 +169,20 @@ TEST(hc06_driver, set_baud_rate_9600_success)
   TEST_ASSERT_EQUAL(HC06_OK, status);
 }
 
-TEST(hc06_driver, set_baud_rate_460800_success)
+TEST(hc06_driver, set_baud_rate_115200_success)
 {
-  char* output_data = "AT+UART=460800,0,0\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+BAUD8";
+  char* input_data = "OK";
 
   // Determine baudrate
   mock_uart_expect_set_baudrate(&init_speed);
-  expect_transmit_receive_cmd(test_cmd, ok_response);
+  expect_check_link();
 
   // Set baudrate
   expect_transmit_receive_cmd(output_data, input_data);
   mock_uart_expect_set_baudrate(&highest_speed);
 
-  hc06_status status = hc06_set_baudrate(HC06_460800);
+  hc06_status status = hc06_set_baudrate(HC06_115200);
 
   TEST_ASSERT_EQUAL(HC06_OK, status);
 }
@@ -183,8 +190,8 @@ TEST(hc06_driver, set_baud_rate_460800_success)
 TEST(hc06_driver, set_name_anything_success)
 {
   char* name = "anything";
-  char* output_data = "AT+NAME=anything\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+NAMEanything";
+  char* input_data = "OK";
   
   expect_transmit_receive_cmd(output_data, input_data);
   hc06_status status = hc06_set_name(name);
@@ -203,8 +210,8 @@ TEST(hc06_driver, set_name_long_name_fail)
 
 TEST(hc06_driver, set_1234_pin_success)
 {
-  char* output_data = "AT+PSWD=\"1234\"\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+PIN1234";
+  char* input_data = "OK";
 
   expect_transmit_receive_cmd(output_data, input_data);
   hc06_status status = hc06_set_pin(1234);
@@ -221,8 +228,8 @@ TEST(hc06_driver, set_12345_pin_fail)
 
 TEST(hc06_driver, set_0000_pin_success)
 {
-  char* output_data = "AT+PSWD=\"0000\"\r\n";
-  char* input_data = "OK\r\n";
+  char* output_data = "AT+PIN0000";
+  char* input_data = "OK";
 
   expect_transmit_receive_cmd(output_data, input_data);
   hc06_status status = hc06_set_pin(0000);

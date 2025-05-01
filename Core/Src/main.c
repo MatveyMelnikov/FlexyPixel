@@ -18,9 +18,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "usbd_cdc_if.h"
 #include "task_manager.h"
 #include "builder_general.h"
 #include "cy15b104q_driver.h"
@@ -28,6 +30,8 @@
 #include "single_changes_storage.h"
 #include "builder_task_manager.h"
 #include "frames_storage.h"
+#include "builder_debug_handler.h"
+#include "debug_handler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +56,6 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 DMA_HandleTypeDef hdma_tim2_ch1;
 
-UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -65,7 +68,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI1_Init(void);
@@ -75,7 +77,7 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-UART_HandleTypeDef *debug_uart = &huart1;
+
 /* USER CODE END 0 */
 
 /**
@@ -108,10 +110,10 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_TIM2_Init();
-  MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_SPI1_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -124,16 +126,22 @@ int main(void)
 
   builder_general_build(&huart2, &hspi1, &htim2);
 
+  // Can connect to USB session (if host is connected)
+  DEBUG_HANDLER_OUTPUT("Modules initialized successfully");
+
   cy15b104q_driver_power_up();
+
   cy15b104q_driver_status mem_status = cy15b104q_driver_check_link();
   if (mem_status != CY15B104Q_STATUS_OK)
     Error_Handler();
+  DEBUG_HANDLER_OUTPUT("Memory initialized successfully");
 
   (void)cy15b104q_driver_write_enable();
   (void)cy15b104q_driver_write_status_register(false, false, false);
 
   if (builder_task_manager_build())
     Error_Handler();
+  DEBUG_HANDLER_OUTPUT("Task manager initialized successfully");
 
   task_manager_start_cluster("startup", NULL);
 
@@ -155,6 +163,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -181,6 +190,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -319,39 +334,6 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART1_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART1_Init 0 */
-
-  /* USER CODE END USART1_Init 0 */
-
-  /* USER CODE BEGIN USART1_Init 1 */
-
-  /* USER CODE END USART1_Init 1 */
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART1_Init 2 */
-
-  /* USER CODE END USART1_Init 2 */
-
-}
-
-/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -420,17 +402,24 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Heart_Beat_GPIO_Port, Heart_Beat_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, HEART_BEAT_Pin|USB_NRST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(CY15B104Q_NCS_GPIO_Port, CY15B104Q_NCS_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : Heart_Beat_Pin */
-  GPIO_InitStruct.Pin = Heart_Beat_Pin;
+  /*Configure GPIO pin : HEART_BEAT_Pin */
+  GPIO_InitStruct.Pin = HEART_BEAT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(Heart_Beat_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(HEART_BEAT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USB_NRST_Pin */
+  GPIO_InitStruct.Pin = USB_NRST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(USB_NRST_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CY15B104Q_NCS_Pin */
   GPIO_InitStruct.Pin = CY15B104Q_NCS_Pin;

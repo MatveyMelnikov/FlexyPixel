@@ -7,9 +7,9 @@
 
 static hc06_io module_io;
 static char buffer[HC06_BUFFER_SIZE];
-static char *baudrate_cmd = "AT+UART=%u,0,0\r\n";
-static char *change_name_cmd = "AT+NAME=%s\r\n";
-static char *change_pin_cmd = "AT+PSWD=\"%04u\"\r\n";
+static char *baudrate_cmd = "AT+BAUD%u";
+static char *change_name_cmd = "AT+NAME%s";
+static char *change_pin_cmd = "AT+PIN%04u";
 static const uint32_t baudrate_int[] = {
   1200, 2400, 4800, 9600, 19200, 38400, 
   57600, 115200, 230400, 460800
@@ -26,12 +26,13 @@ static volatile bool is_data_receiving = false;
 
 static void set_check_cmd()
 {
-  strcpy(buffer, "AT\r\n");
+  strcpy(buffer, "AT");
 }
 
 static void set_baudrate_cmd(hc06_baudrate baudrate)
 {
-  sprintf(buffer, baudrate_cmd, GET_BAUDRATE_INT(baudrate));
+  // sprintf(buffer, baudrate_cmd, GET_BAUDRATE_INT(baudrate));
+  sprintf(buffer, baudrate_cmd, (uint32_t)(baudrate) + 1U);
 }
 
 static void set_change_name_cmd(const char *const name)
@@ -47,7 +48,7 @@ static void set_change_pin_cmd(const uint16_t pin)
 static hc06_status send_at_cmd()
 {
   hc06_status status = module_io.write((uint8_t*)buffer, strlen(buffer));
-  status |= module_io.blocking_read((uint8_t*)buffer, 4);
+  status |= module_io.blocking_read((uint8_t*)buffer, 2U);
 
   if (strstr(buffer, "OK") == NULL)
     return HC06_ERROR;
@@ -64,7 +65,6 @@ void hc06_create(hc06_io io)
   module_io = io;
 
   hc06_set_baudrate(HC06_9600);
-  current_baudrate = HC06_9600;
 }
 
 void hc06_destroy()
@@ -76,7 +76,8 @@ void hc06_destroy()
 hc06_status hc06_check_link()
 {
   set_check_cmd();
-
+  (void)send_at_cmd(); // Dummy AT cmd to wake up HC-06
+  set_check_cmd();
   return send_at_cmd();
 }
 
@@ -98,6 +99,7 @@ hc06_baudrate hc_06_determine_baudrate(void)
   for (; baudrate <= HC06_UNDEFINED; baudrate++)
   {
     (void)module_io.set_controller_baudrate(GET_BAUDRATE_INT(baudrate));
+    // (void)hc06_check_link(); // dummy cmd to wakeup hc06
     if (hc06_check_link() == HC06_OK)
       break;
   }
@@ -109,7 +111,7 @@ hc06_baudrate hc_06_determine_baudrate(void)
 // (Guangzhou HC IT HC-06 product datasheet pg. 16).
 hc06_status hc06_set_name(const char* const name)
 {
-  if (strlen(name) > 20)
+  if (strlen(name) > HC06_MAX_NAME_LEN)
     return HC06_ERROR;
 
   set_change_name_cmd(name);

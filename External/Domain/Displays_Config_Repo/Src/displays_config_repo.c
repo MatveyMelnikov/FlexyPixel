@@ -48,6 +48,7 @@ static displays_config_repo_status displays_config_repo_load()
     return DISPLAYS_CONFIG_REPO_OK;
 
   displays_config_repo_status status = module_io.load(&local_data);
+  is_load_needed = false;
 
   if (status)
     return status;
