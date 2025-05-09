@@ -55,9 +55,9 @@ static void builder_debug_handler_wait_before_connection()
 {
   const char *test_str = "-\r\n";
 
-  for (uint8_t i = 10; i < 100; i++)
+  for (uint8_t i = 10; i < 10; i++)
   {
-    if (CDC_Transmit_FS(test_str, strlen(test_str)) == 0)
+    if (CDC_Transmit_FS((uint8_t*)test_str, strlen(test_str)) == 0)
       break;
     HAL_Delay(10);
   }

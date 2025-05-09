@@ -2,6 +2,7 @@
 #include "task_cluster_receive_cmd.h"
 #include "data_transmitter_port.h"
 #include "message_handler.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -18,8 +19,8 @@ static uint8_t input_buffer[TASK_CLUSTER_RECEIVE_INPUT_BUFFER_SIZE];
 
 static task_output task_request_cmd(task_arg *const argument);
 static task_output task_process_cmd(task_arg *const argument);
-static bool task_is_disconnect_catched(void);
-static task_output task_start_save(void);
+// static bool task_is_disconnect_catched(void);
+// static task_output task_start_save(void);
 static task_output task_restart_cluster(void);
 static bool task_is_not_data_command(void);
 static task_output task_handle_error_input(void);
@@ -78,10 +79,14 @@ static task_output task_request_cmd(task_arg *const argument)
 static task_output task_process_cmd(task_arg *const argument)
 {
   message_handler_set((char*)input_buffer);
-  if (task_is_disconnect_catched())
-    return task_start_save();
+
+  // if (task_is_disconnect_catched())
+  //   return task_start_save();
   if (!data_transmitter_port_is_data_received())
     return TASK_OUTPUT_IN_PROGRESS;
+
+  // DEBUG_HANDLER_OUTPUT((char*)input_buffer);
+  DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\tinput cmd: %s", (char*)input_buffer);
   
   if (task_is_not_data_command())
     return task_handle_error_input();
@@ -90,30 +95,25 @@ static task_output task_process_cmd(task_arg *const argument)
   if (command_type == NULL)
     return task_handle_error_input();
   message_handler_unset();
-  
-  // (void)data_transmitter_port_write(
-  //   (uint8_t*)MESSAGE_HANDLER_RESPONSE_OK,
-  //   strlen(MESSAGE_HANDLER_RESPONSE_OK)
-  // );
 
   cluster_io.start_cluster(command_type, NULL);
   return TASK_OUTPUT_COMPLETED;
 }
 
-static bool task_is_disconnect_catched()
-{
-  // +DISC:SUCC
-  return message_handler_is_part_equal(
-    TASK_CLUSTER_RECEIVE_CMD_DISCONNECT_OFFSET,
-    TASK_CLUSTER_RECEIVE_DISCONNECT_CMD
-  );
-}
+// static bool task_is_disconnect_catched()
+// {
+//   // +DISC:SUCC
+//   return message_handler_is_part_equal(
+//     TASK_CLUSTER_RECEIVE_CMD_DISCONNECT_OFFSET,
+//     TASK_CLUSTER_RECEIVE_DISCONNECT_CMD
+//   );
+// }
 
-static task_output task_start_save(void)
-{
-  cluster_io.start_cluster("save", NULL);
-  return task_restart_cluster();
-}
+// static task_output task_start_save(void)
+// {
+//   cluster_io.start_cluster("SAVE", NULL);
+//   return task_restart_cluster();
+// }
 
 static task_output task_restart_cluster()
 {

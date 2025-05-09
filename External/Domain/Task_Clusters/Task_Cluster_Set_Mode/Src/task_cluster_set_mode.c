@@ -3,6 +3,7 @@
 #include "data_transmitter_port.h"
 #include "message_handler.h"
 #include "mode_repo.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -89,6 +90,8 @@ static task_output task_set_mode(task_arg *const argument)
   message_handler_set((char*)input_buffer);
   if (task_is_not_mode())
     return task_handle_error_input();
+
+  DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\tnew mode: %s", (char*)input_buffer);
 
   if (!task_handle_set_mode())
     return task_handle_error_input();

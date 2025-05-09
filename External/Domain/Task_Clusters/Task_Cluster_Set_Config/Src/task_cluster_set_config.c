@@ -6,6 +6,7 @@
 #include "render_controller.h"
 #include "frames_repo.h"
 #include "single_changes_repo.h"
+#include "debug_handler.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -100,13 +101,13 @@ static task_output task_set_config(task_arg *const argument)
   if (!task_parse_config(&new_config))
     return task_handle_error_input();
 
-  task_reset_frames();
+  DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\tnew_config: %s", (char*)input_buffer);
+  
   displays_config_repo_status status = displays_config_repo_save(&new_config);
   if (status)
     return task_handle_error_input();
+  task_reset_frames();
   
-  single_changes_repo_reset();
-  single_changes_repo_save();
   render_controller_update_config();
   
   (void)data_transmitter_port_write(

@@ -3,7 +3,7 @@
 
 #include "task.h"
 
-#define TASK_CLUSTER_SAVE_NAME "save"
+#define TASK_CLUSTER_SAVE_NAME "SAVE"
 
 typedef struct
 {

@@ -15,7 +15,7 @@ typedef enum
 } task_manager_status;
 
 enum {
-  TASK_MANAGER_CLUSTER_MAX_AMOUNT = 15U,
+  TASK_MANAGER_CLUSTER_MAX_AMOUNT = 20U,
   TASK_MANAGER_SHARED_BUFFER_SIZE = 1024U,
 };
 
