@@ -1,4 +1,5 @@
 #include "data_transmitter_port.h"
+#include "debug_handler.h"
 
 // Defines -------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ data_transmitter_port_status data_transmitter_port_write(
   const uint16_t size
 )
 {
+  DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\toutput: %s", (char*)data);
   return module_io.write(data, size);
 }
 

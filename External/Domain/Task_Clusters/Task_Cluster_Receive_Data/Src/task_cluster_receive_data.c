@@ -4,6 +4,7 @@
 #include "mode_repo.h"
 #include "displays_config_repo.h"
 #include "data_transmitter_port.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -58,6 +59,8 @@ static task_output task_start_data_task(task_arg *const argument)
     displays_config_repo_get();
   if (current_config->displays_amount == 0)
     task_handle_unconfigure_input();
+
+  DEBUG_HANDLER_OUTPUT("\r\n\tconfig and mode is OK");
 
   // Start data cluster according to the operating mode (SEQ, PIX, ...)
   cluster_io.start_cluster((char*)mode_repo_get(), NULL);

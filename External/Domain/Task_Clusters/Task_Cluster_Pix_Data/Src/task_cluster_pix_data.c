@@ -4,6 +4,7 @@
 #include "message_handler.h"
 #include "mode_repo.h"
 #include "single_changes_repo.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -93,6 +94,8 @@ static task_output task_handle_data(task_arg *const argument)
   message_handler_set((char*)input_buffer);
   if (task_is_not_data())
     return task_handle_error_input();
+
+  DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\tinput data: %s", (char*)input_buffer);
 
   if (!task_set_pixel_change())
     return task_handle_error_input();

@@ -39,6 +39,9 @@ void render_controller_update_config()
   displays_amount = config->displays_amount;
   frames_amount = config->frames_amount;
 
+  led_panels_destroy(front_buffer);
+  led_panels_destroy(back_buffer);
+
   front_buffer = led_panels_create(
     config->displays_amount,
     (led_panels_size*)&config->configuration
@@ -61,6 +64,9 @@ void render_controller_destroy()
 
 void render_controller_reset()
 {
+  led_panels_destroy(front_buffer);
+  led_panels_destroy(back_buffer);
+
   displays_amount = 0U;
   frames_amount = 0U;
   frame_index = 0U;
@@ -135,8 +141,8 @@ static void render_controller_apply_changes(void)
       led_panels_set_pixel(
         back_buffer,
         display_index,
-        pixel_index / 8U,
         pixel_index % 8U,
+        pixel_index / 8U,
         change.color
       );
     }

@@ -4,6 +4,7 @@
 #include "message_handler.h"
 #include "mode_repo.h"
 #include "displays_config_repo.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -86,6 +87,8 @@ static task_output task_handle_parameters(task_arg *const argument)
   // {"framesAmount":"030","interframeDelay":"00000000"}
   if (!data_transmitter_port_is_data_received())
     return TASK_OUTPUT_IN_PROGRESS;
+
+    DEBUG_HANDLER_FORMAT_OUTPUT("\r\n\tseq params: %s", (char*)input_buffer);
 
   message_handler_set((char*)input_buffer);
   if (task_is_not_seq_parameters())

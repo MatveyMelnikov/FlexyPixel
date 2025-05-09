@@ -209,6 +209,7 @@ led_panels_buffer *led_panels_create(
 
   led_panels_buffer *buffer = malloc(sizeof(led_panels_buffer));
   buffer->is_locking = false;
+  buffer->is_deleting = false;
   buffer->panels_num = panels_num;
   buffer->panels_sizes = calloc(panels_num, sizeof(led_panels_size));
   buffer->transmit_index = 0;
@@ -221,8 +222,8 @@ led_panels_buffer *led_panels_create(
   for (uint8_t i = 0; i < panels_num; i++)
     pixels_num += (uint16_t)panels_sizes[i];
 
-  buffer->pwm_data = malloc(96); // 4 pixels
-  memset(buffer->pwm_data, LED_PANELS_0_VALUE, 96 * sizeof(uint8_t));
+  buffer->pwm_data = malloc(96U); // 4 pixels
+  memset(buffer->pwm_data, LED_PANELS_0_VALUE, 96U * sizeof(uint8_t));
 
   buffer->pixel_data_size = (uint16_t)(pixels_num * 1.5f);
   buffer->pixel_data = malloc(buffer->pixel_data_size);
@@ -235,6 +236,9 @@ void led_panels_destroy(led_panels_buffer *buffer)
 {
   if (buffer == NULL)
     return;
+
+  module_io.stop_sending();
+  buffer->is_deleting = true;
   free(buffer->panels_sizes);
   free(buffer->pwm_data);
   free(buffer->pixel_data);
@@ -417,7 +421,7 @@ void led_panels_send_complete(void)
 
 void led_panels_half_send_complete(void)
 {
-  if (sending_buffer == NULL)
+  if (sending_buffer == NULL || sending_buffer->is_deleting)
     return;
 
   // Reset (above 50 us)
