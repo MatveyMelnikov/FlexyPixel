@@ -7,6 +7,7 @@
 #include "led_panels_driver.h"
 #include "packed_pixel_data.h"
 #include "render_controller.h"
+#include "debug_handler.h"
 #include <stdlib.h>
 #include <string.h>
 

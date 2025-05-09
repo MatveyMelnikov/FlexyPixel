@@ -33,6 +33,7 @@ typedef struct
   uint16_t panels_num;
   led_panels_size *panels_sizes;
   bool is_locking;
+  bool is_deleting;
   uint16_t transmit_index;
 } led_panels_buffer;
 

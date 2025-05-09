@@ -10,6 +10,7 @@ FOR_TARGET = N
 HOST_TEST_HC06_DRIVER_DIR = $(HOST_TESTS)/hc06_driver
 HOST_TEST_LED_PANELS_DRIVER_DIR = $(HOST_TESTS)/led_panels_driver
 HOST_TEST_RENDER_CONTROLLER_DIR = $(HOST_TESTS)/render_controller
+HOST_TEST_PACKED_PIXEL_DATA_DIR = $(HOST_TESTS)/packed_pixel_data
 
 # TARGET_TEST_FLASH_DRIVER_DIR = ...
 
@@ -38,7 +39,9 @@ $(MOCKS_DIR)/Src/mock.c \
 $(MOCKS_DIR)/Src/mock_delay.c \
 $(MOCKS_DIR)/Src/mock_uart.c \
 $(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test_runner.c \
-$(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test.c
+$(HOST_TEST_LED_PANELS_DRIVER_DIR)/led_panels_test.c \
+$(HOST_TEST_PACKED_PIXEL_DATA_DIR)/packed_pixel_data_test_runner.c \
+$(HOST_TEST_PACKED_PIXEL_DATA_DIR)/packed_pixel_data_test.c
 # $(MOCKS_DIR)/Src/mock_render_controller_io.c \
 # $(FAKES_DIR)/Src/fake_debug_output.c \
 # $(FAKES_DIR)/Src/fake_hc06_time.c \

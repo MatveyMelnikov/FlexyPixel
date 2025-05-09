@@ -26,6 +26,7 @@ TASK_CLUSTER_PIX_DATA = $(DOMAIN)/Task_Clusters/Task_Cluster_Pix_Data
 TASK_CLUSTER_SAVE = $(DOMAIN)/Task_Clusters/Task_Cluster_Save
 TASK_CLUSTER_SEQ_PARAMS = $(DOMAIN)/Task_Clusters/Task_Cluster_Seq_Params
 TASK_CLUSTER_SEQ_DATA = $(DOMAIN)/Task_Clusters/Task_Cluster_Seq_Data
+TASK_CLUSTER_RESET = $(DOMAIN)/Task_Clusters/Task_Cluster_Reset
 
 DISPLAYS_CONFIG_REPO = $(DOMAIN)/Displays_Config_Repo
 SINGLE_CHANGES_REPO = $(DOMAIN)/Single_Changes_Repo
@@ -80,6 +81,7 @@ C_INCLUDES = \
 -I$(TASK_CLUSTER_SAVE)/Inc \
 -I$(TASK_CLUSTER_SEQ_PARAMS)/Inc \
 -I$(TASK_CLUSTER_SEQ_DATA)/Inc \
+-I$(TASK_CLUSTER_RESET)/Inc \
 -I$(DISPLAYS_CONFIG_REPO)/Inc \
 -I$(SINGLE_CHANGES_REPO)/Inc \
 -I$(FRAMES_REPO)/Inc \
@@ -130,6 +132,7 @@ $(TASK_CLUSTER_PIX_DATA)/Src/task_cluster_pix_data.c \
 $(TASK_CLUSTER_SAVE)/Src/task_cluster_save.c \
 $(TASK_CLUSTER_SEQ_PARAMS)/Src/task_cluster_seq_params.c \
 $(TASK_CLUSTER_SEQ_DATA)/Src/task_cluster_seq_data.c \
+$(TASK_CLUSTER_RESET)/Src/task_cluster_reset.c \
 $(DISPLAYS_CONFIG_REPO)/Src/displays_config_repo.c \
 $(SINGLE_CHANGES_REPO)/Src/single_changes_repo.c \
 $(FRAMES_REPO)/Src/frames_repo.c \

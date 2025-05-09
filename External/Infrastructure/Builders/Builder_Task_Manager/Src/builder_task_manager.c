@@ -10,12 +10,13 @@
 #include "task_cluster_save.h"
 #include "task_cluster_seq_params.h"
 #include "task_cluster_seq_data.h"
+#include "task_cluster_reset.h"
 #include <stdbool.h>
 #include <string.h>
 
 // Defines -------------------------------------------------------------------
 
-#define CLUSTERS_AMOUNT 11U
+#define CLUSTERS_AMOUNT 12U
 
 // Static variables ----------------------------------------------------------
 
@@ -93,6 +94,11 @@ static void load_all_clusters()
     ),
     task_cluster_seq_data_create(
       (task_cluster_seq_data_io) {
+        .start_cluster = task_manager_start_cluster
+      }
+    ),
+    task_cluster_reset_create(
+      (task_cluster_reset_io) {
         .start_cluster = task_manager_start_cluster
       }
     )
