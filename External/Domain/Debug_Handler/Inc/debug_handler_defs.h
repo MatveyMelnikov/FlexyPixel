@@ -27,6 +27,7 @@ typedef struct
   void (*reset)(bool);
   // delay with checking host connection (max - 100ms)
   void (*wait_before_connection)(void);
+  void (*delay)(uint32_t);
 } debug_handler_io;
 
 #endif

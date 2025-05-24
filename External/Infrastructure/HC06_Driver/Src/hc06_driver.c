@@ -64,7 +64,7 @@ void hc06_create(hc06_io io)
 {
   module_io = io;
 
-  hc06_set_baudrate(HC06_9600);
+  hc06_set_baudrate(HC06_115200);
 }
 
 void hc06_destroy()

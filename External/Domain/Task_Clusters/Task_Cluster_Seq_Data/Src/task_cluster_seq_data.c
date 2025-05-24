@@ -74,6 +74,7 @@ static task_output task_request_data(task_arg *const argument)
     (uint8_t*)MESSAGE_HANDLER_RESPONSE_OK,
     strlen(MESSAGE_HANDLER_RESPONSE_OK)
   );
+
   uint16_t data_frame_size = 10U + 
     displays_config_repo_get()->displays_amount * 192U + 2U;
   status |= data_transmitter_port_read(
@@ -83,6 +84,8 @@ static task_output task_request_data(task_arg *const argument)
 
   if (status)
     return TASK_OUTPUT_ERROR;
+
+  render_controller_reset();
   render_controller_pause(true);
 
   return (task_output) {
@@ -112,8 +115,8 @@ static task_output task_handle_data(task_arg *const argument)
       strlen(MESSAGE_HANDLER_RESPONSE_OK)
     );
     cluster_io.start_cluster("request_cmd", NULL);
-    render_controller_reset();
     render_controller_update_config();
+    render_controller_pause(false);
     return TASK_OUTPUT_COMPLETED;
   }
   return task_restart_cluster(); 

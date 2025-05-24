@@ -6,6 +6,8 @@
 
 #define PIXEL_SIZE 1.5f
 
+static void stop_sending_fake(void);
+
 // Static variables ----------------------------------------------------------
 
 static led_panels_buffer *buffer = NULL;
@@ -14,8 +16,16 @@ const static led_panels_color pixel = (led_panels_color) {
   .green = 6U,
   .blue = 3U
 };
+static led_panels_io module_io = {
+  .send = NULL,
+  .stop_sending = stop_sending_fake
+};
 
 // Static functions ----------------------------------------------------------
+
+static void stop_sending_fake()
+{
+}
 
 static void set_data_pixel(
   uint8_t *data,
@@ -53,6 +63,7 @@ TEST_SETUP(led_panels_driver)
     LED_PANELS_SIZE_64
   };
 
+  led_panels_init(module_io);
   buffer = led_panels_create(1, panels_types);
 }
 

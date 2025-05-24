@@ -73,7 +73,7 @@ static void expect_check_link()
 
 static void expect_module_init()
 {
-  char *set_baudrate_cmd = "AT+BAUD4";
+  char *set_baudrate_cmd = "AT+BAUD8";
 
   // Determine baudrate
   mock_uart_expect_set_baudrate(&init_speed);
@@ -81,7 +81,7 @@ static void expect_module_init()
 
   // Set baudrate
   expect_transmit_receive_cmd(set_baudrate_cmd, ok_response);
-  mock_uart_expect_set_baudrate(&normal_speed);
+  mock_uart_expect_set_baudrate(&highest_speed);
 }
 
 // Tests ---------------------------------------------------------------------

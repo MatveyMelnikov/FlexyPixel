@@ -16,6 +16,7 @@ void debug_output_create(debug_handler_io io)
 {
   debug_io = io;
   debug_io.reset(true);
+  debug_io.delay(100);
   debug_io.reset(false);
   debug_io.wait_before_connection();
 }

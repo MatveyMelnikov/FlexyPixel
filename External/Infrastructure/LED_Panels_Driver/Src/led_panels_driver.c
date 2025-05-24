@@ -236,6 +236,8 @@ void led_panels_destroy(led_panels_buffer *buffer)
 {
   if (buffer == NULL)
     return;
+
+  module_io.stop_sending();
   buffer->is_deleting = true;
   free(buffer->panels_sizes);
   free(buffer->pwm_data);
