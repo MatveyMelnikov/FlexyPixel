@@ -5,7 +5,6 @@ Control is via a mobile application on android, although the system can autonomo
 
 <img width="1280" height="960" alt="изображение" src="https://github.com/user-attachments/assets/285f8497-a87c-4d35-9ffe-56c144221008" />
 
-
 ## Launch
 * ```make``` - building a production version of the code (does not contain tests);
 * ```make -f MakefileTest.mk``` - building a test version.
