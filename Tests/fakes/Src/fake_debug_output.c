@@ -8,3 +8,12 @@ void debug_output_send(
 )
 {
 }
+
+void debug_output_with_insert_send(
+  char *format,
+  char *insertion,
+  uint16_t line,
+  char *file
+)
+{
+}

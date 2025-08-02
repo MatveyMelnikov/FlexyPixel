@@ -59,26 +59,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Heart_Beat_Pin GPIO_PIN_13
-#define Heart_Beat_GPIO_Port GPIOC
+#define HEART_BEAT_Pin GPIO_PIN_13
+#define HEART_BEAT_GPIO_Port GPIOC
+#define USB_NRST_Pin GPIO_PIN_14
+#define USB_NRST_GPIO_Port GPIOC
 #define PANELS_OUTPUT_Pin GPIO_PIN_0
 #define PANELS_OUTPUT_GPIO_Port GPIOA
 #define HC06_TX_Pin GPIO_PIN_2
 #define HC06_TX_GPIO_Port GPIOA
 #define HC06_RX_Pin GPIO_PIN_3
 #define HC06_RX_GPIO_Port GPIOA
-#define Flash_SCK_Pin GPIO_PIN_5
-#define Flash_SCK_GPIO_Port GPIOA
-#define Flash_MISO_Pin GPIO_PIN_6
-#define Flash_MISO_GPIO_Port GPIOA
-#define Flash_MOSI_Pin GPIO_PIN_7
-#define Flash_MOSI_GPIO_Port GPIOA
-#define Flash_CS_Pin GPIO_PIN_0
-#define Flash_CS_GPIO_Port GPIOB
-#define USB_TX_Pin GPIO_PIN_9
-#define USB_TX_GPIO_Port GPIOA
-#define USB_RX_Pin GPIO_PIN_10
-#define USB_RX_GPIO_Port GPIOA
+#define CY15B104Q_NCS_Pin GPIO_PIN_4
+#define CY15B104Q_NCS_GPIO_Port GPIOA
+#define CY15B104Q_SCK_Pin GPIO_PIN_5
+#define CY15B104Q_SCK_GPIO_Port GPIOA
+#define CY15B104Q_MISO_Pin GPIO_PIN_6
+#define CY15B104Q_MISO_GPIO_Port GPIOA
+#define CY15B104Q_MOSI_Pin GPIO_PIN_7
+#define CY15B104Q_MOSI_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

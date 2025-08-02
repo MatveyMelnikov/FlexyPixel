@@ -1,0 +1,8 @@
+#ifndef FRAMES_STORAGE_DEFS_H
+#define FRAMES_STORAGE_DEFS_H
+
+enum {
+  FRAMES_STORAGE_START_ADDRESS = 0x491U,
+};
+
+#endif

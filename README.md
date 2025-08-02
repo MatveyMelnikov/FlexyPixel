@@ -3,8 +3,7 @@
 Firmware for embedded system of modular LED panels. The system includes a microcontroller stm32f103, bluetooth module HC-06, flash module hw-234 and led panels (based on WS2812B).
 Control is via a mobile application on android, although the system can autonomously display downloaded images and animations. The firmware can be updated via a custom bootloader and application on a PC.
 
-
-![изображение](https://github.com/user-attachments/assets/6e6d66ee-efe2-4804-a331-550d5400bed1)
+<img width="1280" height="960" alt="изображение" src="https://github.com/user-attachments/assets/285f8497-a87c-4d35-9ffe-56c144221008" />
 
 ## Launch
 * ```make``` - building a production version of the code (does not contain tests);
